@@ -1,34 +1,40 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { useEffect, createRef } from "react";
+import { createPluginUI } from "molstar/lib/mol-plugin-ui";
+import { PluginUIContext } from "molstar/lib/mol-plugin-ui/context";
+import "molstar/lib/mol-plugin-ui/skin/light.scss";
 
-function App() {
-  const [count, setCount] = useState(0)
-
-  return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
-  )
+declare global {
+  interface Window {
+    molstar?: PluginUIContext;
+  }
 }
 
-export default App
+
+export default function App() {
+  const parent = createRef<HTMLDivElement>();
+  const plugin = PluginUIContext;
+
+  useEffect(() => {
+    async function init() {
+        window.molstar = await createPluginUI(parent.current as HTMLDivElement);
+
+        const data = await window.molstar.builders.data.download(
+          { url: "https://files.rcsb.org/download/3PTB.pdb" }, /* replace with your URL */
+          { state: { isGhost: true } }
+        );
+        const trajectory =
+          await window.molstar.builders.structure.parseTrajectory(data, "pdb");
+        await window.molstar.builders.structure.hierarchy.applyPreset(
+          trajectory,
+          "default"
+        );
+    }
+    init();
+    return () => {
+      window.molstar?.dispose();
+      window.molstar = undefined;
+    };
+  }, []);
+
+  return <div ref={parent} style={{ width: 640, height: 480 }}/>;
+}
