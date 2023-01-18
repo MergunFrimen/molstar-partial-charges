@@ -49,10 +49,11 @@
             var url_prefix = 'http://127.0.0.1:1338/examples/acc2/';
             var url = url_prefix + '3bj1.default2.cif';
 
+            // TODO: figure out a better way to do this
             (async () => {
-              while(!window.hasOwnProperty("molstar"))
+              while(!window.hasOwnProperty("molstar") || !molstar.plugin)
                 await new Promise(resolve => setTimeout(resolve, 500));
-              await molstar.load('https://files.rcsb.org/download/5XH3.cif')
+              await molstar.load('url')
             })();
 
             addHeader('Load');

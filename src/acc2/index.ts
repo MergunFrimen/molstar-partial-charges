@@ -16,8 +16,7 @@ import { ACC2PropertyProvider } from './property';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 
 export class ACC2Wrapper {
-    private plugin: PluginUIContext;
-    // snapshot: PluginState.Snapshot;
+    private plugin!: PluginUIContext;
 
     async init(target: string) {
         this.plugin = await createPluginUI(document.getElementById(target)!, {
