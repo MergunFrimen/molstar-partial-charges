@@ -40,20 +40,17 @@
                 visibility: hidden;
             }
         </style>
+        <link rel="stylesheet" type="text/css" href="molstar.css" />
+        <script type="text/javascript" src="./index.js"></script>
     </head>
     <body>
-      <div id='controls'></div>
-      <div id="root"></div>
-      <script type="module" src="/src/index.tsx"></script>
+        <div id='controls'></div>
+        <div id="app"></div>
         <script>
             var url_prefix = 'http://127.0.0.1:1338/examples/acc2/';
             var url = url_prefix + '3bj1.default2.cif';
 
-            (async () => {
-              while(!window.hasOwnProperty("molstar"))
-                await new Promise(resolve => setTimeout(resolve, 500));
-              await molstar.load('https://files.rcsb.org/download/5XH3.cif')
-            })();
+            molstar.load(url);
 
             addHeader('Load');
             addControl('3bj1.cif', async () => await molstar.load(url_prefix + '3bj1.cif'))
