@@ -6,11 +6,12 @@ export default defineConfig({
     reportCompressedSize: false,
     emptyOutDir: true,
     rollupOptions: {
-      output: {
-        assetFileNames: "[name].[ext]",
-        chunkFileNames: "[name].js",
-        entryFileNames: "[name].js",
-      }
-    }
-  }
+    },
+    lib: {
+      entry: './src/acc2/index.ts',
+      name: 'Molstar Partial Charges',
+      fileName: 'molstar-partial-charges',
+      formats: ['es', 'cjs'],
+    },
+  },
 })
