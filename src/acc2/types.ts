@@ -4,9 +4,8 @@ import { SizeTheme } from 'molstar/lib/mol-theme/size';
 import { ACC2ColorThemeParams } from './color';
 
 export interface RepresentationStyle {
-    sequence?: RepresentationStyle.Entry,
-    hetGroups?: RepresentationStyle.Entry,
-    nonStandard?: RepresentationStyle.Entry,
+    polymer?: RepresentationStyle.Entry,
+    nonPolymer?: RepresentationStyle.Entry,
     water?: RepresentationStyle.Entry
 }
 
@@ -26,14 +25,11 @@ export enum StateElements {
     Model = 'model',
     Assembly = 'assembly',
 
-    Sequence = 'sequence',
-    SequenceVisual = 'sequence-visual',
+    Polymer = 'polymer',
+    PolymerVisual = 'polymer-visual',
 
-    HetGroups = 'hetgroups',
-    HetGroupsVisual = 'hetgroups-visual',
-
-    NonStandard = 'nonstandard',
-    NonStandardVisual = 'nonstandard-visual',
+    NonPolymer = 'non-polymer',
+    NonPolymerVisual = 'non-polymer-visual',
 
     Water = 'water',
     WaterVisual = 'water-visual',

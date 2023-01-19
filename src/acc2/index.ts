@@ -6,17 +6,25 @@ import { createStructureRepresentationParams } from 'molstar/lib/mol-plugin-stat
 import { StateTransforms } from 'molstar/lib/mol-plugin-state/transforms';
 import { StateBuilder, StateObject } from 'molstar/lib/mol-state';
 import { PluginStateObject, PluginStateObject as PSO } from 'molstar/lib/mol-plugin-state/objects';
-import { RepresentationStyle, StateElements } from './types';
 import { StructureFocusRepresentation } from 'molstar/lib/mol-plugin/behavior/dynamic/selection/structure-focus-representation';
 import { PluginSpec } from 'molstar/lib/mol-plugin/spec';
 import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
-import { ACC2LociLabelProvider } from './label';
 import { ACC2ColorThemeProvider } from './color';
+import { ACC2LociLabelProvider } from './label';
 import { ACC2PropertyProvider } from './property';
+import { RepresentationStyle, StateElements } from './types';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
+import { StructureSelectionFromScript } from 'molstar/lib/mol-plugin-state/transforms/model';
+
+declare global {
+    interface Window {
+        molstar: ACC2Wrapper;
+    }
+}
 
 export class ACC2Wrapper {
-    private plugin!: PluginUIContext;
+    plugin!: PluginUIContext;
+    // snapshot: PluginState.Snapshot;
 
     async init(target: string) {
         this.plugin = await createPluginUI(document.getElementById(target)!, {
@@ -51,32 +59,29 @@ export class ACC2Wrapper {
         await this.setInitialStyle();
     }
 
+    // TODO: transform fails if you set representation style for a component that isnt loaded
     private async setInitialStyle() {
+        const color = 'acc2-partial-charges';
         const initialStyle: RepresentationStyle = {
-            sequence: {
+            polymer: {
                 type: 'cartoon',
-                color: 'acc2-partial-charges',
+                color,
                 colorParams: { isResidue: true },
                 size: 'uniform',
             },
-            hetGroups: {
+            nonPolymer: {
                 type: 'ball-and-stick',
-                color: 'acc2-partial-charges',
-                size: 'uniform',
-            },
-            nonStandard: {
-                type: 'ball-and-stick',
-                color: 'acc2-partial-charges',
+                color,
                 size: 'uniform',
             },
             water: {
                 type: 'ball-and-stick',
-                color: 'acc2-partial-charges',
+                color,
                 size: 'uniform',
             },
         };
         await this.updateRepresentationStyle(initialStyle);
-        await this.updateFocusColorTheme(initialStyle.sequence!.color);
+        await this.updateFocusColorTheme(color);
 
         this.plugin.managers.interactivity.setProps({ granularity: 'element' });
     }
@@ -117,10 +122,15 @@ export class ACC2Wrapper {
 
         const assembly = model.apply(StateTransforms.Model.StructureFromModel, props, { ref: StateElements.Assembly });
 
-        assembly.apply(StateTransforms.Model.StructureComplexElement, { type: 'atomic-sequence' }, { ref: StateElements.Sequence, tags: StateElements.Sequence });
-        assembly.apply(StateTransforms.Model.StructureComplexElement, { type: 'atomic-het' }, { ref: StateElements.HetGroups, tags: StateElements.HetGroups });
-        assembly.apply(StateTransforms.Model.StructureComplexElement, { type: 'non-standard' }, { ref: StateElements.NonStandard, tags: StateElements.NonStandard });
-        assembly.apply(StateTransforms.Model.StructureComplexElement, { type: 'water' }, { ref: StateElements.Water, tags: StateElements.Water });
+        // assembly.apply(StateTransforms.Model.StructureComplexElement, { type: 'polymer' }, { ref: StateElements.Sequence, tags: StateElements.Sequence });
+        // assembly.apply(StateTransforms.Model.StructureComplexElement, { type: 'ligand' }, { ref: StateElements.HetGroups, tags: StateElements.HetGroups });
+        // assembly.apply(StateTransforms.Model.StructureComplexElement, { type: 'non-standard' }, { ref: StateElements.NonStandard, tags: StateElements.NonStandard });
+        // assembly.apply(StateTransforms.Model.StructureComplexElement, { type: 'water' }, { ref: StateElements.Water, tags: StateElements.Water });
+
+        const language = 'mol-script';
+        assembly.apply(StructureSelectionFromScript, { script: { language, expression: '(sel.atom.atom-groups :atom-test (= atom.entity-type polymer))' }, label: 'Polymer' }, { ref: StateElements.Polymer });
+        assembly.apply(StructureSelectionFromScript, { script: { language, expression: '(sel.atom.atom-groups :atom-test (= atom.entity-type non-polymer))' }, label: 'Non-polymer' }, { ref: StateElements.NonPolymer });
+        assembly.apply(StructureSelectionFromScript, { script: { language, expression: '(sel.atom.atom-groups :atom-test (= atom.entity-type water))' }, label: 'Water' }, { ref: StateElements.Water });
 
         return assembly;
     }
@@ -154,27 +164,20 @@ export class ACC2Wrapper {
         const assembly = this.getObj<PluginStateObject.Molecule.Structure>(StateElements.Assembly);
         if (!assembly) return;
 
-        if (style.sequence) {
-            const root = update.to(StateElements.Sequence);
-            const props = this.mergeStyleProps(style.sequence, this.getOldStyle(StateElements.SequenceVisual));
+        if (style.polymer) {
+            const root = update.to(StateElements.Polymer);
+            const props = this.mergeStyleProps(style.polymer, this.getOldStyle(StateElements.PolymerVisual));
             const isResidue = props.type === 'cartoon' && props.color === 'acc2-partial-charges';
             const colorParams = { isResidue };
             const adjustedProps = this.mergeStyleProps({ colorParams }, props);
-            root.applyOrUpdate(StateElements.SequenceVisual, StateTransforms.Representation.StructureRepresentation3D,
+            root.applyOrUpdate(StateElements.PolymerVisual, StateTransforms.Representation.StructureRepresentation3D,
                 createStructureRepresentationParams(this.plugin, assembly, adjustedProps));
         }
 
-        if (style.hetGroups) {
-            const root = update.to(StateElements.HetGroups);
-            const props = this.mergeStyleProps(style.hetGroups, this.getOldStyle(StateElements.HetGroupsVisual));
-            root.applyOrUpdate(StateElements.HetGroupsVisual, StateTransforms.Representation.StructureRepresentation3D,
-                createStructureRepresentationParams(this.plugin, assembly, props));
-        }
-
-        if (style.nonStandard) {
-            const root = update.to(StateElements.NonStandard);
-            const props = this.mergeStyleProps(style.nonStandard, this.getOldStyle(StateElements.NonStandardVisual));
-            root.applyOrUpdate(StateElements.NonStandardVisual, StateTransforms.Representation.StructureRepresentation3D,
+        if (style.nonPolymer) {
+            const root = update.to(StateElements.NonPolymer);
+            const props = this.mergeStyleProps(style.nonPolymer, this.getOldStyle(StateElements.NonPolymerVisual));
+            root.applyOrUpdate(StateElements.NonPolymerVisual, StateTransforms.Representation.StructureRepresentation3D,
                 createStructureRepresentationParams(this.plugin, assembly, props));
         }
 
@@ -209,15 +212,11 @@ export class ACC2Wrapper {
     coloring = {
         set: async (color: RepresentationStyle.Entry['color'], colorParams: RepresentationStyle.Entry['colorParams']) => {
             const representationStyle: RepresentationStyle = {
-                sequence: {
+                polymer: {
                     color,
                     colorParams
                 },
-                hetGroups: {
-                    color,
-                    colorParams
-                },
-                nonStandard: {
+                nonPolymer: {
                     color,
                     colorParams
                 },
@@ -240,19 +239,16 @@ export class ACC2Wrapper {
     };
 
     type = {
-        set: async (sequence: RepresentationStyle.Entry['type'], nonsequence: RepresentationStyle.Entry['type']) => {
+        set: async (polymer: RepresentationStyle.Entry['type'], nonpolymer: RepresentationStyle.Entry['type']) => {
             const representationStyle: RepresentationStyle = {
-                sequence: {
-                    type: sequence
+                polymer: {
+                    type: polymer
                 },
-                hetGroups: {
-                    type: nonsequence
-                },
-                nonStandard: {
-                    type: nonsequence
+                nonPolymer: {
+                    type: nonpolymer
                 },
                 water: {
-                    type: nonsequence
+                    type: nonpolymer
                 }
             };
             await this.updateRepresentationStyle(representationStyle);
@@ -270,3 +266,5 @@ export class ACC2Wrapper {
         }
     };
 }
+
+window.molstar = new ACC2Wrapper();

@@ -1,9 +1,13 @@
 import { OrderedSet } from 'molstar/lib/mol-data/int';
 import { Loci } from 'molstar/lib/mol-model/loci';
-import { StructureElement } from 'molstar/lib/mol-model/structure';
+import { QueryContext, Structure, StructureElement, StructureSelection } from 'molstar/lib/mol-model/structure';
 import { LociLabel } from 'molstar/lib/mol-plugin-state/manager/loci-label';
+import { PluginStateObject } from 'molstar/lib/mol-plugin-state/objects';
 import { PluginBehavior } from 'molstar/lib/mol-plugin/behavior';
 import { PluginContext } from 'molstar/lib/mol-plugin/context';
+import { MolScriptBuilder as MS } from 'molstar/lib/mol-script/language/builder';
+import { compile } from 'molstar/lib/mol-script/runtime/query/base';
+import { StateObject } from 'molstar/lib/mol-state';
 import { ACC2PropertyProvider } from './property';
 
 export const ACC2LociLabelProvider = PluginBehavior.create({
@@ -14,8 +18,7 @@ export const ACC2LociLabelProvider = PluginBehavior.create({
         constructor(protected ctx: PluginContext) { }
         private provider = {
             label: (loci: Loci) => {
-                if (!StructureElement.Loci.is(loci))
-                    return '<b>Charge</b>: undefined';
+                if (!StructureElement.Loci.is(loci)) return;
 
                 const model = loci.structure.model;
                 const data = ACC2PropertyProvider.get(model).value?.data;
@@ -28,18 +31,9 @@ export const ACC2LociLabelProvider = PluginBehavior.create({
                 const index = OrderedSet.start(indices);
                 const id = elements[index] + 1;
 
-                // todo: fix; this gets recomputed for each label
-                const polymerAtomIds = new Set();
-                if (!!this.ctx.state.data.select('sequence')[0]?.obj?.data?.units) {
-                    for (const unit of this.ctx.state.data.select('sequence')[0].obj!.data.units) {
-                        for (const atomId of unit.elements) {
-                            polymerAtomIds.add(atomId);
-                        }
-                    }
-                }
-
+                const isPolymerAtom = StructureElement.Loci.isSubset(getPolymerLoci(this.ctx), loci);
                 const params = this.ctx.state.data.tree.transforms.get('sequence-visual')?.params;
-                const isResidue = params?.type?.name === 'cartoon' && polymerAtomIds.has(id);
+                const isResidue = params?.type?.name === 'cartoon' && isPolymerAtom;
                 const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
                 const charge = isResidue
                     ? residueToCharge.get(typeId)!.get(id)
@@ -54,3 +48,22 @@ export const ACC2LociLabelProvider = PluginBehavior.create({
         unregister() { this.ctx.managers.lociLabels.removeProvider(this.provider); }
     },
 });
+
+function getPolymerLoci(ctx: PluginContext) {
+    const model = getObj<PluginStateObject.Molecule.Model>(ctx, 'model');
+    const structure = Structure.ofModel(model);
+    const query = MS.struct.modifier.union([
+        MS.struct.generator.atomGroups({
+            'entity-test': MS.core.rel.eq([MS.ammp('entityType'), 'polymer'])
+        })
+    ]);
+    const compiled = compile<StructureSelection>(query);
+    const result = compiled(new QueryContext(structure));
+    return StructureSelection.toLociWithCurrentUnits(result);
+}
+
+function getObj<T extends StateObject>(ctx: PluginContext, ref: string): T['data'] {
+    const cell = ctx.state.data.select(ref)[0];
+    if (cell && cell.obj)
+        return (cell.obj as T).data;
+}
