@@ -4,14 +4,11 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   build: {
     reportCompressedSize: false,
-    emptyOutDir: true,
-    rollupOptions: {
-    },
+    emptyOutDir: false,
     lib: {
-      entry: './src/acc2/index.ts',
+      entry: './src/index.ts',
       name: 'Molstar Partial Charges',
-      fileName: 'molstar-partial-charges',
-      formats: ['es', 'cjs'],
+      fileName: (format) => `molstar-partial-charges.${format}.js`
     },
   },
 })
