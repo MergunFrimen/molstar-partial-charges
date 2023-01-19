@@ -1,7 +1,10 @@
 import './style.css'
+import ACC2Wrapper from '../src/index'
 
 var url_prefix = 'http://127.0.0.1:1338/examples/acc2/';
 var url = url_prefix + '3bj1.default2.cif';
+
+const molstar = new ACC2Wrapper();
 
 molstar.init('app').then(() => {
     molstar.load(url);
@@ -33,16 +36,16 @@ addInput('min-charge', -5);
 addInput('max-charge', 5);
 addInput('absolute-toggle', false);
 addControl('Apply range', () => molstar.coloring.partialCharges({
-    absolute: eval(document.getElementById('absolute-toggle').value),
-    min: parseFloat(document.getElementById('min-charge').value),
-    max: parseFloat(document.getElementById('max-charge').value),
+    absolute: eval((document.getElementById('absolute-toggle') as HTMLInputElement).value),
+    min: parseFloat((document.getElementById('min-charge') as HTMLInputElement)!.value),
+    max: parseFloat((document.getElementById('max-charge') as HTMLInputElement).value),
 }));
 
 addSeparator();
 addHeader('Change TypeId');
 addInput('type-id', 1);
 addControl('Set typeId', () => molstar.charges.setTypeId(
-    parseInt(document.getElementById('type-id').value),
+    parseInt((document.getElementById('type-id') as HTMLInputElement).value),
 ))
 
 function addInput(id, placeholder) {
@@ -50,23 +53,23 @@ function addInput(id, placeholder) {
     input.setAttribute('id', id);
     input.setAttribute('type', 'text');
     input.setAttribute('placeholder', placeholder);
-    document.getElementById('controls').appendChild(input);
+    document.getElementById('controls')!.appendChild(input);
 }
 
 function addControl(label, action) {
     var btn = document.createElement('button');
     btn.onclick = action;
     btn.innerText = label;
-    document.getElementById('controls').appendChild(btn);
+    document.getElementById('controls')!.appendChild(btn);
 }
 
 function addSeparator() {
     var hr = document.createElement('hr');
-    document.getElementById('controls').appendChild(hr);
+    document.getElementById('controls')!.appendChild(hr);
 }
 
 function addHeader(header) {
     var h = document.createElement('h3');
     h.innerText = header;
-    document.getElementById('controls').appendChild(h);
+    document.getElementById('controls')!.appendChild(h);
 }
