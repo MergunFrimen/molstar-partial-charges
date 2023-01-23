@@ -9,8 +9,7 @@ import { CustomModelProperty } from 'molstar/lib/mol-model-props/common/custom-m
 type ChargesTableType = {
     atomIdToCharge: Map<number, Map<number, number>>;
     residueToCharge: Map<number, Map<number, number>>;
-    chargesMin: Map<number, number>;
-    chargesMax: Map<number, number>;
+    maxAbsoluteCharges: Map<number, number>;
 };
 type ACC2Property = PropertyWrapper<ChargesTableType | undefined>;
 
@@ -18,7 +17,6 @@ const ACC2PropertyParams = {
     typeId: PD.Numeric(1)
 };
 type ACC2PropertyParams = typeof ACC2PropertyParams;
-// type ACC2PropertyProps = PD.Values<ACC2PropertyParams>;
 
 export namespace ACC2Property {
     export async function getData(model: Model): Promise<CustomProperty.Data<ACC2Property>> {
@@ -36,6 +34,14 @@ export namespace ACC2Property {
         if (!typeIds || !atomIds || !charges)
             return { value: { info, data: undefined } };
 
+        const atomIdToCharge = getAtomIdToCharge(rowCount, typeIds, atomIds, charges);
+        const maxAbsoluteCharges = getMaxAbsoluteCharges(atomIdToCharge);
+        const residueToCharge = getResidueToCharges(model, atomIdToCharge);
+
+        return { value: { info, data: { atomIdToCharge, residueToCharge, maxAbsoluteCharges } } };
+    }
+
+    function getAtomIdToCharge(rowCount: number, typeIds: readonly number[],atomIds: readonly number[], charges: readonly number[]): ChargesTableType['atomIdToCharge'] {
         const atomIdToCharge: ChargesTableType['atomIdToCharge'] = new Map();
 
         for (let i = 0; i < rowCount; ++i) {
@@ -47,24 +53,21 @@ export namespace ACC2Property {
             atomIdToCharge.get(typeId)!.set(atomId, charge);
         }
 
-        const { chargesMin, chargesMax } = getChargesRanges(atomIdToCharge);
-
-        const residueToCharge = getResidueToCharges(model, atomIdToCharge);
-
-        return { value: { info, data: { atomIdToCharge, residueToCharge, chargesMin, chargesMax } } };
+        return atomIdToCharge;
     }
 
-    function getChargesRanges(atomIdToCharge: ChargesTableType['atomIdToCharge']) {
-        const chargesMin = new Map();
+    function getMaxAbsoluteCharges(atomIdToCharge: ChargesTableType['atomIdToCharge']): ChargesTableType['maxAbsoluteCharges'] {
         const chargesMax = new Map();
 
         Array.from(atomIdToCharge.keys()).forEach((typeId) => {
             const charges = Array.from(atomIdToCharge.get(typeId)!.values());
-            chargesMin.set(typeId, Math.min(...charges));
-            chargesMax.set(typeId, Math.max(...charges));
+            const min = Math.min(...charges);
+            const max = Math.max(...charges);
+            const bound = Math.max(Math.abs(min), max);
+            chargesMax.set(typeId, bound);
         });
 
-        return { chargesMin, chargesMax };
+        return chargesMax;
     }
 
     function getResidueToCharges(model: Model, atomIdToCharge: ChargesTableType['atomIdToCharge']) {
