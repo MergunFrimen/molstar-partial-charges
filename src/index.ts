@@ -13,17 +13,13 @@ import { ACC2ColorThemeProvider } from './color';
 import { ACC2LociLabelProvider } from './label';
 import { ACC2PropertyProvider } from './property';
 import { RepresentationStyle, StateElements } from './types';
-import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 import { StructureSelectionFromScript } from 'molstar/lib/mol-plugin-state/transforms/model';
+import merge from 'lodash.merge';
+import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 
-declare global {
-    interface Window {
-        molstar: ACC2Wrapper;
-    }
-}
 
-export class ACC2Wrapper {
-    plugin!: PluginUIContext;
+export default class PartialChargesWrapper {
+    private plugin!: PluginUIContext;
     // snapshot: PluginState.Snapshot;
 
     async init(target: string) {
@@ -129,7 +125,7 @@ export class ACC2Wrapper {
 
         const language = 'mol-script';
         assembly.apply(StructureSelectionFromScript, { script: { language, expression: '(sel.atom.atom-groups :atom-test (= atom.entity-type polymer))' }, label: 'Polymer' }, { ref: StateElements.Polymer });
-        assembly.apply(StructureSelectionFromScript, { script: { language, expression: '(sel.atom.atom-groups :atom-test (= atom.entity-type non-polymer))' }, label: 'Non-polymer' }, { ref: StateElements.NonPolymer });
+        assembly.apply(StructureSelectionFromScript, { script: { language, expression: '(sel.atom.atom-groups :atom-test (= atom.entity-type non-polymer))' }, label: 'Non-Polymer' }, { ref: StateElements.NonPolymer });
         assembly.apply(StructureSelectionFromScript, { script: { language, expression: '(sel.atom.atom-groups :atom-test (= atom.entity-type water))' }, label: 'Water' }, { ref: StateElements.Water });
 
         return assembly;
@@ -147,18 +143,6 @@ export class ACC2Wrapper {
         };
     }
 
-    // TODO: use lodash fp.merge
-    private mergeStyleProps(newStyle: RepresentationStyle.Entry, oldStyle: RepresentationStyle.Entry): any {
-        return {
-            type: newStyle.type || oldStyle.type,
-            color: newStyle.color || oldStyle.color,
-            colorParams: { ...oldStyle.colorParams, ...newStyle.colorParams },
-            size: newStyle.size || oldStyle.size,
-            // sizeParams: newStyle.sizeParams || oldStyle.sizeParams,
-            // typeParams: newStyle.typeParams || oldStyle.typeParams,
-        };
-    }
-
     private async updateRepresentationStyle(style: RepresentationStyle) {
         const update = this.state.build();
         const assembly = this.getObj<PluginStateObject.Molecule.Structure>(StateElements.Assembly);
@@ -166,24 +150,24 @@ export class ACC2Wrapper {
 
         if (style.polymer) {
             const root = update.to(StateElements.Polymer);
-            const props = this.mergeStyleProps(style.polymer, this.getOldStyle(StateElements.PolymerVisual));
+            const props = merge(style.polymer, this.getOldStyle(StateElements.PolymerVisual));
             const isResidue = props.type === 'cartoon' && props.color === 'acc2-partial-charges';
             const colorParams = { isResidue };
-            const adjustedProps = this.mergeStyleProps({ colorParams }, props);
+            const adjustedProps = merge({ colorParams }, props);
             root.applyOrUpdate(StateElements.PolymerVisual, StateTransforms.Representation.StructureRepresentation3D,
                 createStructureRepresentationParams(this.plugin, assembly, adjustedProps));
         }
 
         if (style.nonPolymer) {
             const root = update.to(StateElements.NonPolymer);
-            const props = this.mergeStyleProps(style.nonPolymer, this.getOldStyle(StateElements.NonPolymerVisual));
+            const props = merge(style.nonPolymer, this.getOldStyle(StateElements.NonPolymerVisual));
             root.applyOrUpdate(StateElements.NonPolymerVisual, StateTransforms.Representation.StructureRepresentation3D,
                 createStructureRepresentationParams(this.plugin, assembly, props));
         }
 
         if (style.water) {
             const root = update.to(StateElements.Water);
-            const props = this.mergeStyleProps(style.water, this.getOldStyle(StateElements.WaterVisual));
+            const props = merge(style.water, this.getOldStyle(StateElements.WaterVisual));
             root.applyOrUpdate(StateElements.WaterVisual, StateTransforms.Representation.StructureRepresentation3D,
                 createStructureRepresentationParams(this.plugin, assembly, props));
         }
@@ -199,7 +183,7 @@ export class ACC2Wrapper {
     }
 
     charges = {
-        setTypeId: (typeId: number) => {
+        set: (typeId: number) => {
             const model = this.getObj<PluginStateObject.Molecule.Model>(StateElements.Model);
             const sourceData = model.sourceData as MmcifFormat;
             const validTypeIds = new Set(sourceData.data.frame.categories.partial_atomic_charges.getField('type_id')?.toIntArray());
@@ -210,7 +194,7 @@ export class ACC2Wrapper {
     };
 
     coloring = {
-        set: async (color: RepresentationStyle.Entry['color'], colorParams: RepresentationStyle.Entry['colorParams']) => {
+        set: async (color: RepresentationStyle.Entry['color'], colorParams?: RepresentationStyle.Entry['colorParams']) => {
             const representationStyle: RepresentationStyle = {
                 polymer: {
                     color,
@@ -234,7 +218,7 @@ export class ACC2Wrapper {
         },
         default: async () => {
             const color = 'element-symbol';
-            await this.coloring.set(color, undefined);
+            await this.coloring.set(color);
         }
     };
 
@@ -266,5 +250,3 @@ export class ACC2Wrapper {
         }
     };
 }
-
-window.molstar = new ACC2Wrapper();
