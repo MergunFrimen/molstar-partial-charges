@@ -10,9 +10,11 @@
     "watch": "vite build --watch --sourcemap true --mode development"
   },
   "dependencies": {
+    "lodash.merge": "^4.6.2",
     "molstar": "^3.29.0"
   },
   "devDependencies": {
+    "@types/lodash.merge": "^4.6.7",
     "sass": "^1.57.1",
     "typescript": "^4.9.3",
     "vite": "^4.0.0"
