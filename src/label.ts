@@ -23,7 +23,7 @@ export const ACC2LociLabelProvider = PluginBehavior.create({
                 const model = loci.structure.model;
                 const data = ACC2PropertyProvider.get(model).value?.data;
                 if (data === undefined)
-                    return '<b>Charge</b>: undefined';
+                    return;
 
                 const { atomIdToCharge, residueToCharge } = data;
                 const { unit, indices } = loci.elements[0];
@@ -31,15 +31,18 @@ export const ACC2LociLabelProvider = PluginBehavior.create({
                 const index = OrderedSet.start(indices);
                 const id = elements[index] + 1;
 
-                const isPolymerAtom = StructureElement.Loci.isSubset(getPolymerLoci(this.ctx), loci);
-                const params = this.ctx.state.data.tree.transforms.get('sequence-visual')?.params;
-                const isResidue = params?.type?.name === 'cartoon' && isPolymerAtom;
+                const isLociFromPolymer = StructureElement.Loci.isSubset(getPolymerLoci(this.ctx), loci);
+                const colorThemeParams = this.ctx.state.data.tree.transforms.get('polymer-visual')?.params;
+                const isResidue = colorThemeParams?.type?.name === 'cartoon' && isLociFromPolymer;
                 const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
                 const charge = isResidue
                     ? residueToCharge.get(typeId)!.get(id)
                     : atomIdToCharge.get(typeId)!.get(id);
+                const label = isResidue
+                    ? 'Residue charge'
+                    : 'Atom charge';
 
-                return `<b>Charge</b>: ${charge?.toFixed(3)}`;
+                return `<b>${label}: ${charge?.toFixed(3)}</b>`;
             },
             group: (label: LociLabel) => label.toString().replace(/Model [0-9]+/g, 'Models'),
             priority: 100
@@ -49,6 +52,7 @@ export const ACC2LociLabelProvider = PluginBehavior.create({
     },
 });
 
+// TODO: create a custom model property provider
 function getPolymerLoci(ctx: PluginContext) {
     const model = getObj<PluginStateObject.Molecule.Model>(ctx, 'model');
     const structure = Structure.ofModel(model);
