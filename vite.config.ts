@@ -4,7 +4,7 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   build: {
     reportCompressedSize: false,
-    emptyOutDir: false,
+    emptyOutDir: true,
     lib: {
       entry: './src/index.ts',
       name: 'Molstar Partial Charges',

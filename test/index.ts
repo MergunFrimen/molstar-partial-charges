@@ -3,51 +3,85 @@ import PartialChargesWrapper from '../src/index'
 
 // Example use of the plugin wrapper
 
-const url_prefix = 'http://localhost:1338/examples/acc2/';
-const url = url_prefix + '3bj1.default2.cif';
+const url_prefix = 'http://localhost:1338/examples/output/';
+const url = url_prefix + '3bj1.cif.charges.cif';
+
+let current_example = 0;
+const examples  = [
+    '100d.cif.charges.cif',
+    '101m.cif.charges.cif',
+    '146d.cif.charges.cif',
+    '1a34.cif.charges.cif',
+    '1aga.cif.charges.cif',
+    '1c0q.cif.charges.cif',
+    '1cp8.cif.charges.cif',
+    '2_4_dinitrophenol.sdf.charges.cif',
+    '2p7d.cif.charges.cif',
+    '3bj1.cif.charges.cif',
+    '3c1p.cif.charges.cif',
+    '3wpc.cif.charges.cif',
+    '5boq.cif.charges.cif',
+    'Conformer3D_CID_155884675.sdf.charges.cif',
+    'Conformer3D_CID_16078.sdf.charges.cif',
+    'Conformer3D_CID_1832.sdf.charges.cif',
+    'Conformer3D_CID_2519.sdf.charges.cif',
+    'Conformer3D_CID_4980.sdf.charges.cif',
+    'Conformer3D_CID_5761.sdf.charges.cif',
+    'molecules.sdf.charges.cif',
+];
 
 const molstar = new PartialChargesWrapper();
 
-molstar.init('app').then(() => {
-    molstar.load(url);
-})
+molstar.init('app').then(async () => {
+    await molstar.load(url_prefix +  '3bj1.cif.charges.cif');
+});
 
 addHeader('Load');
-addControl('3bj1.cif', async () => await molstar.load(url_prefix + '3bj1.cif'))
-addControl('3bj1.default.cif', async () => await molstar.load(url_prefix + '3bj1.default.cif'))
-addControl('3bj1.default2.cif', async () => await molstar.load(url_prefix + '3bj1.default2.cif'))
-addControl('default-example.cif', async () => await molstar.load(url_prefix + 'default-example.cif'))
-addControl('7qo1.cif', async () => await molstar.load(url_prefix + '7qo1.cif'))
-addControl('6qga.cif', async () => await molstar.load(url_prefix + '6qga.charges.cif'))
+addControl('Next example', nextExample);
+for (const example of examples) {
+    addControl(example.replace('.charges.cif', ''), async () => {
+        await molstar.load(url_prefix + example);
+    });
+}
 
 addHeader('Type');
-addControl('Cartoon', () => molstar.type.cartoon())
-addControl('Surface', () => molstar.type.surface())
-addControl('Ball and stick', () => molstar.type.ballAndStick())
-addControl('Empty', () => molstar.type.set(undefined, undefined))
+addControl('Cartoon', async () => await molstar.updateType('default'))
+addControl('Surface', async () => await molstar.updateType('gaussian-surface'))
+addControl('Ball and stick', async () => await molstar.updateType('ball-and-stick'))
+// addControl('Cartoon', () => molstar.type.cartoon())
+// addControl('Surface', () => molstar.type.surface())
+// addControl('Ball and stick', () => molstar.type.ballAndStick())
+// addControl('Empty', () => molstar.type.set(undefined, undefined))
             
 addSeparator();
 addHeader('Coloring');
-addControl('Default', () => molstar.coloring.default())
-addControl('Partial Charges (true, -1, 1)', () => molstar.coloring.partialCharges({ absolute: true, max: 1}))
-addControl('Partial Charges (true, -0.2, 0.4)', () => molstar.coloring.partialCharges({ absolute: true, max: 0.4}))
-addControl('Partial Charges (true, -0.38171, 0.38171)', () => molstar.coloring.partialCharges({ absolute: true, max: 0.38171}))
-addControl('Partial Charges (false)', () => molstar.coloring.partialCharges({ absolute: false }))
+addControl('Default', () => molstar.updateColor('default'))
+addControl('Charges', () => molstar.updateColor('acc2-partial-charges'))
+// addControl('Default', () => molstar.coloring.default())
+// addControl('Partial Charges (true, 0.1)', () => molstar.coloring.partialCharges(true, 0.1))
+// addControl('Partial Charges (true, 0.2)', () => molstar.coloring.partialCharges(true, 0.2))
+// addControl('Partial Charges (true, 0.38171)', () => molstar.coloring.partialCharges(true, 0.38171))
+// addControl('Partial Charges (true, 0.5)', () => molstar.coloring.partialCharges(true, 0.5))
+// addControl('Partial Charges (false)', () => molstar.coloring.partialCharges(false))
 
 addSeparator();
 addHeader('Charge range');
 addInput('max-charge', 5);
-addControl('Apply range', () => molstar.coloring.partialCharges({
-    absolute: true,
-    max: parseFloat((document.getElementById('max-charge') as HTMLInputElement).value),
-}));
+addControl('Apply range', () => molstar.charges.setMax(parseFloat((document.getElementById('max-charge') as HTMLInputElement).value)));
 
 addSeparator();
 addHeader('Change TypeId');
 addInput('type-id', 1);
-addControl('Set typeId', () => molstar.charges.set(
+addControl('Set typeId', () => molstar.charges.setTypeId(
     parseInt((document.getElementById('type-id') as HTMLInputElement).value),
 ))
+
+async function nextExample() {
+    console.clear();
+    current_example = (current_example + 1) % examples.length;
+    await molstar.load(url_prefix + `${examples[current_example % examples.length]}`);
+    (document.querySelector('#app > div > div > div:nth-child(1) > div.msp-layout-region.msp-layout-left > div > div > div.msp-left-panel-controls-buttons > button:nth-child(2)') as HTMLButtonElement)!.click();
+}
 
 function addInput(id, placeholder) {
     const input = document.createElement('input');

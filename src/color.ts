@@ -14,9 +14,9 @@ const ErrorColor = Color(0x00ff00);
 
 export const ACC2ColorThemeParams = {
     max: PD.Numeric(0, { min: 0 }),
-    typeId: PD.Numeric(1, undefined, { isHidden: true }),
+    typeId: PD.Numeric(-1, undefined, { isHidden: false }),
     absolute: PD.Boolean(false, { isHidden: false }),
-    isResidue: PD.Boolean(false, { isHidden: false }),
+    showResidueCharge: PD.Boolean(false, { isHidden: false }),
 };
 export type ACC2ColorThemeParams = typeof ACC2ColorThemeParams;
 
@@ -56,20 +56,24 @@ function getColor(chargeValue: number, maxAbsoluteCharge: number): Color {
 export function ACC2ColorTheme(ctx: ThemeDataContext, props: PD.Values<ACC2ColorThemeParams>): ColorTheme<ACC2ColorThemeParams> {
     const model = ctx.structure?.models[0]!;
     const data = ACC2PropertyProvider.get(model).value?.data;
-    const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
+    const typeId = props.typeId != -1 ? props.typeId : ACC2PropertyProvider.getParams(model).typeId.defaultValue;
 
     function color(location: Location): Color {
         if (data === undefined) return ErrorColor;
         if (Bond.isLocation(location)) return BondColor;
-        if (!StructureElement.Location.is(location)) return ErrorColor;
+        if (!StructureElement.Location.is(location)) {
+            return ErrorColor;
+        }
 
         const { atomIdToCharge, residueToCharge, maxAbsoluteCharges } = data;
-        const { absolute, isResidue } = props;
+        const { absolute, showResidueCharge: isResidue } = props;
         const maxAbsoluteCharge = absolute ? props.max : maxAbsoluteCharges.get(typeId)!;
         const id = StructureProperties.atom.id(location);
         const charges = isResidue ? residueToCharge.get(typeId) : atomIdToCharge.get(typeId);
         const chargeValue = charges?.get(id);
-        if (!charges || chargeValue === undefined) return ErrorColor;
+        if (!charges || chargeValue === undefined) {
+            return ErrorColor;
+        }
 
         return getColor(chargeValue, maxAbsoluteCharge);
     }
