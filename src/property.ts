@@ -6,10 +6,13 @@ import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
 import { CustomPropertyDescriptor } from 'molstar/lib/mol-model/custom-property';
 import { CustomModelProperty } from 'molstar/lib/mol-model-props/common/custom-model-property';
 
+// TODO: add atomIdToEntityType
+
 type ChargesTableType = {
     atomIdToCharge: Map<number, Map<number, number>>;
     residueToCharge: Map<number, Map<number, number>>;
     maxAbsoluteCharges: Map<number, number>;
+    // atomIdToEntityType: Map<number, string>;
 };
 type ACC2Property = PropertyWrapper<ChargesTableType | undefined>;
 
@@ -25,23 +28,20 @@ export namespace ACC2Property {
         if (!isApplicable(model))
             return { value: { info, data: undefined } };
 
-        const sourceData = model.sourceData as MmcifFormat;
-        const rowCount = sourceData.data.frame.categories.partial_atomic_charges.rowCount;
-        const typeIds = sourceData.data.frame.categories.partial_atomic_charges.getField('type_id')?.toIntArray();
-        const atomIds = sourceData.data.frame.categories.partial_atomic_charges.getField('atom_id')?.toIntArray();
-        const charges = sourceData.data.frame.categories.partial_atomic_charges.getField('charge')?.toFloatArray();
-
-        if (!typeIds || !atomIds || !charges)
-            return { value: { info, data: undefined } };
-
-        const atomIdToCharge = getAtomIdToCharge(rowCount, typeIds, atomIds, charges);
+        const atomIdToCharge = getAtomIdToCharge(model);
         const maxAbsoluteCharges = getMaxAbsoluteCharges(atomIdToCharge);
         const residueToCharge = getResidueToCharges(model, atomIdToCharge);
+        // const atomIdToEntityType = getAtomIdToEntityType(model);
 
         return { value: { info, data: { atomIdToCharge, residueToCharge, maxAbsoluteCharges } } };
     }
 
-    function getAtomIdToCharge(rowCount: number, typeIds: readonly number[],atomIds: readonly number[], charges: readonly number[]): ChargesTableType['atomIdToCharge'] {
+    function getAtomIdToCharge(model: Model): ChargesTableType['atomIdToCharge'] {
+        const sourceData = model.sourceData as MmcifFormat;
+        const rowCount = sourceData.data.frame.categories.partial_atomic_charges.rowCount;
+        const typeIds = sourceData.data.frame.categories.partial_atomic_charges.getField('type_id')?.toIntArray()!;
+        const atomIds = sourceData.data.frame.categories.partial_atomic_charges.getField('atom_id')?.toIntArray()!;
+        const charges = sourceData.data.frame.categories.partial_atomic_charges.getField('charge')?.toFloatArray()!;
         const atomIdToCharge: ChargesTableType['atomIdToCharge'] = new Map();
 
         for (let i = 0; i < rowCount; ++i) {
@@ -52,6 +52,8 @@ export namespace ACC2Property {
                 atomIdToCharge.set(typeId, new Map());
             atomIdToCharge.get(typeId)!.set(atomId, charge);
         }
+
+        ACC2PropertyParams.typeId.defaultValue = Math.min(...typeIds);
 
         return atomIdToCharge;
     }
@@ -90,6 +92,18 @@ export namespace ACC2Property {
 
         return residueToCharge;
     }
+
+    // function getAtomIdToEntityType(model: Model) {
+    //     const atomIdToEntityType = new Map();
+
+    //     const sourceData = model.sourceData as MmcifFormat;
+    //     const rowCount = sourceData.data.frame.categories.partial_atomic_charges.rowCount;
+    //     const typeIds = sourceData.data.frame.categories.partial_atomic_charges.getField('type_id')?.toIntArray()!;
+    //     const atomIds = sourceData.data.frame.categories.partial_atomic_charges.getField('atom_id')?.toIntArray()!;
+    //     const atomIds = sourceData.data.frame.categories.partial_atomic_charges.getField('label_type_id')?.toIntArray()!;
+    //     const charges = sourceData.data.frame.categories.partial_atomic_charges.getField('charge')?.toFloatArray()!;
+    //     const atomIdToCharge: ChargesTableType['atomIdToCharge'] = new Map();
+    // }
 
     function hasACC2Categories(model: Model): boolean {
         if (!MmcifFormat.is(model.sourceData))

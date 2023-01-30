@@ -6,21 +6,22 @@ import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
 import { Location } from 'molstar/lib/mol-model/location';
 import { ACC2Property, ACC2PropertyProvider } from './property';
 import { CustomProperty } from 'molstar/lib/mol-model-props/common/custom-property';
-import { RepresentationStyle } from './types';
-import { StructureFocusRepresentation } from 'molstar/lib/mol-plugin/behavior/dynamic/selection/structure-focus-representation';
 
-const BondColor = Color(0x999999);
-const ErrorColor = Color(0x00ff00);
+const Colors = {
+    Bond: Color(0x999999),
+    Error: Color(0x00ff00),
+    MissingCharge: Color(0xffffff),
+}
 
 export const ACC2ColorThemeParams = {
     max: PD.Numeric(0, { min: 0 }),
-    typeId: PD.Numeric(-1, undefined, { isHidden: false }),
+    typeId: PD.Numeric(-1, undefined, { isHidden: true }),
     absolute: PD.Boolean(false, { isHidden: false }),
     showResidueCharge: PD.Boolean(false, { isHidden: false }),
 };
 export type ACC2ColorThemeParams = typeof ACC2ColorThemeParams;
 
-export function getACC2ColorThemeParams(ctx: ThemeDataContext) {
+export function getACC2ColorThemeParams() {
     return PD.clone(ACC2ColorThemeParams);
 }
 
@@ -56,24 +57,22 @@ function getColor(chargeValue: number, maxAbsoluteCharge: number): Color {
 export function ACC2ColorTheme(ctx: ThemeDataContext, props: PD.Values<ACC2ColorThemeParams>): ColorTheme<ACC2ColorThemeParams> {
     const model = ctx.structure?.models[0]!;
     const data = ACC2PropertyProvider.get(model).value?.data;
-    const typeId = props.typeId != -1 ? props.typeId : ACC2PropertyProvider.getParams(model).typeId.defaultValue;
+    const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
+    ACC2ColorThemeParams.typeId.defaultValue = typeId;
 
     function color(location: Location): Color {
-        if (data === undefined) return ErrorColor;
-        if (Bond.isLocation(location)) return BondColor;
-        if (!StructureElement.Location.is(location)) {
-            return ErrorColor;
-        }
+        if (data === undefined) return Colors.Error;
+        if (Bond.isLocation(location)) return Colors.Bond;
+        if (!StructureElement.Location.is(location)) return Colors.Error;
 
         const { atomIdToCharge, residueToCharge, maxAbsoluteCharges } = data;
         const { absolute, showResidueCharge: isResidue } = props;
+        
         const maxAbsoluteCharge = absolute ? props.max : maxAbsoluteCharges.get(typeId)!;
         const id = StructureProperties.atom.id(location);
         const charges = isResidue ? residueToCharge.get(typeId) : atomIdToCharge.get(typeId);
         const chargeValue = charges?.get(id);
-        if (!charges || chargeValue === undefined) {
-            return ErrorColor;
-        }
+        if (!charges || chargeValue === undefined) return Colors.MissingCharge;
 
         return getColor(chargeValue, maxAbsoluteCharge);
     }

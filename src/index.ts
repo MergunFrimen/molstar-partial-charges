@@ -1,27 +1,28 @@
 import { createPluginUI } from 'molstar/lib/mol-plugin-ui/react18';
 import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
 import { DefaultPluginUISpec, PluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
-import { StateTransform } from 'molstar/lib/mol-state';
-import { PluginStateObject } from 'molstar/lib/mol-plugin-state/objects';
 import { StructureFocusRepresentation } from 'molstar/lib/mol-plugin/behavior/dynamic/selection/structure-focus-representation';
 import { PluginSpec } from 'molstar/lib/mol-plugin/spec';
 import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
 import { ACC2ColorThemeProvider } from './color';
 import { ACC2LociLabelProvider } from './label';
 import { ACC2PropertyProvider } from './property';
-import { RepresentationStyle } from './types';
+import { Representation3D } from './types';
 import merge from 'lodash.merge';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
-import { StateTransforms } from 'molstar/lib/mol-plugin-state/transforms';
-import { UUID } from 'molstar/lib/mol-util';
+import { Model } from 'molstar/lib/mol-model/structure';
+import { BallAndStickRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/ball-and-stick'
+import { GaussianSurfaceRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/gaussian-surface'
+import { ElementSymbolColorThemeProvider } from 'molstar/lib/mol-theme/color/element-symbol';
+import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
 
 /**
  * Wrapper class for the Mol* plugin.
+ * 
+ * This class provides a simple interface for loading structures and setting representations.
  */
-export default class PartialChargesWrapper {
-    /**
-     * The Mol* plugin.
-     */
+export default class ACC2PartialChargesWrapper {
+
     private plugin!: PluginUIContext;
 
     /**
@@ -31,20 +32,11 @@ export default class PartialChargesWrapper {
      * @param specs PluginUISpec to override default plugin settings
      */
     async init(target: string, specs?: PluginUISpec) {
-        this.plugin = await createPluginUI(document.getElementById(target)!, merge({}, DefaultPluginUISpec(), specs, {
-            layout: {
-                initial: {
-                    isExpanded: false,
-                    showControls: true,
-                }
-            },
-            behaviors: [
-                ...DefaultPluginUISpec().behaviors,
-                PluginSpec.Behavior(ACC2LociLabelProvider),
-            ]
-        }));
+        const mergedSpecs: PluginUISpec = merge({}, DefaultPluginUISpec(), specs);
+        mergedSpecs.behaviors.push(PluginSpec.Behavior(ACC2LociLabelProvider));
 
-        this.plugin.managers.interactivity.setProps({ granularity: 'element' });
+        this.plugin = await createPluginUI(document.getElementById(target)!, mergedSpecs);
+    
         this.plugin.customModelProperties.register(ACC2PropertyProvider, true);
         this.plugin.representation.structure.themes.colorThemeRegistry.add(ACC2ColorThemeProvider);
     }
@@ -56,245 +48,251 @@ export default class PartialChargesWrapper {
      */
     async load(url: string) {
         await this.plugin.clear();
+        
         const data = await this.plugin.builders.data.download({ url }, { state: { isGhost: true } });
         const trajectory = await this.plugin.builders.structure.parseTrajectory(data, 'mmcif');
-        await this.plugin.builders.structure.hierarchy.applyPreset(trajectory, 'default');
+        await this.plugin.builders.structure.hierarchy.applyPreset(trajectory, 'default', { showUnitcell: false, representationPreset: 'auto' });
         
         await this.setInitialRepresentationState();
-        await this.updateColor('acc2-partial-charges');
-    }
-    
-    /**
-     * List of components to override with default representation.
-     */
-    private overrideComponents = new Set([
-        // 'all',
-        // 'coarse',
-        'branched',
-        // 'ion',
-        // 'ligand',
-        // 'lipid',
-        // 'nucleic',
-        // 'non-standard',
-        // 'polymer',
-        // 'protein',
-        // 'water',
-    ].map(v => `structure-component-static-${v}`));
-
-    private overrideDefaults = {
-        color: 'element-symbol',
-        type: 'ball-and-stick',
-        size: 'physical',
-    };
-
-    private initialRepresentationState: Map<string, { color: string, type: string}> = new Map();
-    /**
-     * Set the default representation for all components.
-     */
-    private async setInitialRepresentationState() {
-        console.log(this.plugin.state.data.cells);
-        console.log(this.getModel());
-        await this.plugin.dataTransaction(async () => {
-            for (const structure of this.plugin.managers.structure.hierarchy.current.structures) {
-                const update = this.plugin.state.data.build();
-                for (const component of structure.components) {
-                    for (const representation of component.representations) {
-                        if (this.overrideComponents.has(component.key!)) {
-                            update.to(representation.cell).delete(representation.cell.transform.ref);
-                        }
-                        else {
-                            let props = representation.cell.transform.params;
-                            this.initialRepresentationState.set(representation.cell.transform.ref, { color: props?.colorTheme.name!, type: props?.type.name! });
-                        }
-                    }
-                    if (this.overrideComponents.has(component.key!)) {
-                        const { color, size, type } = this.overrideDefaults
-                        const ref = UUID.create22();
-                        update.to(component.cell).applyOrUpdate(ref, StateTransforms.Representation.StructureRepresentation3D, {
-                            type: { name: type, params: {} },
-                            colorTheme: { name: color, params: {} },
-                            sizeTheme: { name: size, params: {} }
-                        });
-                        this.initialRepresentationState.set(ref, { color, type });
-                    }
-                }
-                await update.commit({ canUndo: 'Update Theme' });
-            }
-        });
     }
 
-    // TODO: remove
-    // private async getRepresentationState() {
-    //     const representationState = new Map();
-    //     for (const structure of this.plugin.managers.structure.hierarchy.current.structures) {
-    //         for (const component of structure.components) {
-    //             for (const representation of component.representations) {
-    //                 representationState.set(representation.cell.transform.ref, { color: representation.cell.transform.params?.colorTheme, type: representation.cell.transform.params?.type });
-    //             }
-    //         }
-    //     }
-    //     return representationState;
-    // }
-
-    async updateType(type: RepresentationStyle.Type) {
-        await this.plugin.dataTransaction(async () => {
-            for (const structure of this.plugin.managers.structure.hierarchy.current.structures) {
-                const update = this.plugin.state.data.build();
-                for (const component of structure.components) {
-                    for (const representation of component.representations) {
-                        if (!this.initialRepresentationState.has(representation.cell.transform.ref)) continue
-                        let props = representation.cell.transform.params;
-                        
-                        const name = type === 'default' ? this.initialRepresentationState.get(representation.cell.transform.ref)?.type : type;
-                        props = merge({}, props, { type: { name } });
-                        
-                        // change size for surface
-                        const value = props?.type.name === 'gaussian-surface' ? 1.6 : 1;
-                        props = merge({}, props, { sizeTheme: { params: { value } } });
-                        
-                        update.to(representation.cell).update({ ...props });
-                    }
-                }
-                await update.commit({ canUndo: 'Update Theme' });
-            }
-        });
-    }
-
-    async updateColor(color: RepresentationStyle.Color, params: RepresentationStyle.ColorParams={}) {
-        await this.plugin.dataTransaction(async () => {
-            for (const structure of this.plugin.managers.structure.hierarchy.current.structures) {
-                const update = this.plugin.state.data.build();
-                for (const component of structure.components) {
-                    for (const representation of component.representations) {
-                        if (!this.initialRepresentationState.has(representation.cell.transform.ref)) continue
-                        let props = representation.cell.transform.params;
-                        
-                        const name = color === 'default' ? this.initialRepresentationState.get(representation.cell.transform.ref)?.color : color;
-                        const showResidueCharge = name === 'acc2-partial-charges' && props?.type.name === 'cartoon';
-                        props = merge({}, props, { colorTheme: { name, params: { ...params, showResidueCharge } } });
-                        console.log(props);
-                        
-                        update.to(representation.cell).update({ ...props });
-                    }
-                }
-                await update.commit({ canUndo: 'Update Theme' });
-            }
-        });
-        await this.updateFocusColorTheme(color, params);
-    }
-
-    // private async updateRepresentationStyle(newProps: RepresentationStyle) {
-
-    //     const defaultProps: Map<string, { color: string, type: string}> = new Map();
-
-    //     await this.plugin.dataTransaction(async () => {
-    //         // console.log(this.plugin.managers.structure.hierarchy.current.structures);
-    //         for (const structure of this.plugin.managers.structure.hierarchy.current.structures) {
-    //             const update = this.plugin.state.data.build();
-
-    //             for (const component of structure.components) {
-    //                 for (const representation of component.representations) {
-    //                     // console.log("ref", representation.cell.transform.ref);
-    //                     const oldProps = representation.cell.transform.params;
-    //                     let props = oldProps;
-                        
-    //                     defaultProps.set(representation.cell.transform.ref, { color: oldProps?.colorTheme.name!, type: oldProps?.type.name! });
-    //                     // console.log(representation.component.cell.obj?.label, props?.type.name);
-                        
-    //                     if (this.residueType.has(representation.component.key!)) {
-    //                         // console.log(`${component.key} has residues`);
-    //                         props = merge({}, props, newProps.residue);
-    //                         const isResidue = props?.type.name === 'cartoon' && props.colorTheme.name === 'acc2-partial-charges';
-    //                         props = merge({}, props, { colorTheme: { params: { isResidue } } });
-    //                     }
-    //                     else if (this.atomTypes.has(representation.component.key!)) {
-    //                         // console.log(`${component.key} does not have residues`);
-    //                         props = merge({}, props, newProps.nonResidue);
-    //                     }
-    //                     else {
-    //                         // console.log(`${component.key} is unknown`);
-    //                     }
-                        
-    //                     // when surface is selected, increase size
-    //                     const value = props?.type.name === 'gaussian-surface' ? 1.6 : 1;
-    //                     props = merge({}, props, { sizeTheme: { params: { value } } });
-
-    //                         update.to(representation.cell).update({ ...props });
-    //                 }
-    //             }
-
-    //             await update.commit({ canUndo: 'Update Theme' });
-    //         }
-    //     });
-
-    //     console.log(defaultProps);
-    // }
-
-    // TODO: might need to update range
-    private async updateFocusColorTheme(color: RepresentationStyle.Color, params: RepresentationStyle.ColorParams={}) {
-        await this.plugin.state.updateBehavior(StructureFocusRepresentation, (p: any) => {
-            p.surroundingsParams.colorTheme = { name: color, params };
-            p.targetParams.colorTheme = { name: color, params };
-        });
-    }
-
-    // TODO: get cell by label
-    private getModel() {
-        // console.log(this.plugin.state.data.select("-=root=-"));
-        // return this.plugin.state.data.select("-=root=-").find(c => c.obj?.type.name === 'Model')?.transform.ref;
-        this.plugin.state.data.cells.forEach((v, k) => {
-            if (v.obj?.type.name === 'Model') {
-                console.log(this.plugin.state.data.select(k)[0]);
-            }
-        });
-    }
-
-    // TODO: fix this
     charges = {
+        /**
+         * Set which partial charges are used.
+         * 
+         * @param typeId ID of the partial charge type
+         */
         setTypeId: async (typeId: number) => {
-            // const model = this.getObj<PluginStateObject.Molecule.Model>('Model');
-            // const sourceData = model.sourceData as MmcifFormat;
-            // const validTypeIds = new Set(sourceData.data.frame.categories.partial_atomic_charges.getField('type_id')?.toIntArray());
-            // if (!validTypeIds.has(typeId)) return;
-            // ACC2PropertyProvider.set(model, { typeId });
-            // await this.coloring.set({params: {typeId}}, {params: {typeId}});
-            await this.updateColor('acc2-partial-charges', { typeId });
+            await this.updateModelPropertyData(typeId);
         },
-        setMax: async (max: number) => {
-            await this.updateColor('acc2-partial-charges', { max, absolute: true });
-        }
+        /**
+         * Set the partial charge range to absolute.
+         * 
+         * TODO: add description of what this does
+         * 
+         * @param max Absolute maximum partial charge
+         */
+        absolute: async (max: number) => {
+            await this.updateColor(this.partialChargesColorProps.name, { max, absolute: true });
+        },
+        /**
+         * Set the partial charge range to relative.
+         */
+        relative: async () => {
+            await this.updateColor(this.partialChargesColorProps.name, { absolute: false });
+        },
     };
 
-    coloring = {
-        set: async (color: RepresentationStyle.Color) => {
-            await this.updateColor(color);
-        },
-        partialCharges: async () => {
-            await this.updateColor('acc2-partial-charges');
-        },
+    color = {
+        /**
+         * Set the color theme to the default color theme (whatever Molstar picks).
+         */
         default: async () => {
             await this.updateColor('default');
-        }
+        },
+        partialCharges: async () => {
+            await this.updateColor(this.partialChargesColorProps.name);
+        },
     };
 
+    /**
+     * Object for updating the representation type.
+     */
     type = {
-        set: async (type: RepresentationStyle.Type) => {
-            await this.updateType(type);
+        /**
+         * @returns Whether the loaded structure can be viewed with a representation type
+         * other than Ball and stick or Surface..
+         */
+        isDefaultApplicable: () => {
+            const other = ['cartoon', 'carbohydrate'];
+            return Array.from(this.defaultProps.values()).some(({ type }) => other.includes(type.name));
         },
-        cartoon: async () => {
-            this.updateType('default');
+        /**
+         * Set the representation type to the default type (whatever Molstar picks).
+         */
+        default: async () => {
+            await this.updateType('default');
         },
         ballAndStick: async () => {
-            this.updateType('ball-and-stick');
+            await this.updateType(this.ballAndStickTypeProps.type.name);
         },
         surface: async () => {
-            this.updateType('gaussian-surface');
+            await this.updateType(this.surfaceTypeProps.type.name);
+        },
+    };
+    
+    // * this might come in handy later
+    // private overrideComponents = new Set([
+    //     // 'all',
+    //     // 'coarse',
+    //     // 'branched',
+    //     // 'ion',
+    //     // 'ligand',
+    //     // 'lipid',
+    //     // 'nucleic',
+    //     // 'non-standard',
+    //     // 'polymer',
+    //     // 'protein',
+    //     // 'water',
+    // ].map(v => `structure-component-static-${v}`));
+
+    // private overrideDefaults = {
+    //     color: 'element-symbol' as Representation3D.Color,
+    //     type: 'ball-and-stick' as Representation3D.Type,
+    //     size: 'physical' as Representation3D.Size,
+    // };
+
+    
+    private readonly defaultProps: Map<string, Representation3D> = new Map();
+
+    private readonly ballAndStickTypeProps: { type: Representation3D.Type, sizeTheme: Representation3D.Size } = {
+        type: {
+            name: 'ball-and-stick',
+            params: {
+                ...BallAndStickRepresentationProvider.defaultValues,
+            },
+        },
+        sizeTheme: {
+            name: 'physical',
+            params: {
+                ...PhysicalSizeThemeProvider.defaultValues,
+            },
         }
     };
+    private readonly surfaceTypeProps: { type: Representation3D.Type, sizeTheme: Representation3D.Size } = {
+        type: {
+            name: 'molecular-surface',
+            params: {
+                ...GaussianSurfaceRepresentationProvider.defaultValues,
+            },
+        },
+        sizeTheme: {
+            name: 'physical',
+            params: {
+                ...PhysicalSizeThemeProvider.defaultValues,
+                scale: 1.7,
+            },
+        }
 
-    // size = {
-    //     default: async () => {
-    //         this.size.set({ name: 'uniform', params: { value: 1 } });
-    //     }
-    // }
+    };
+    private readonly partialChargesColorProps: Representation3D.Color = {
+        name: 'acc2-partial-charges',
+        params: {
+            // purposefully not using default values
+        },
+    };
+    private readonly elementSymbolColorProps: Representation3D.Color = {
+        name: 'element-symbol',
+        params: {
+            ...ElementSymbolColorThemeProvider.defaultValues,
+        },
+    };
+    
+    private async setInitialRepresentationState() {
+        this.defaultProps.clear();
+        await this.plugin.dataTransaction(async () => {
+            for (const structure of this.plugin.managers.structure.hierarchy.current.structures) {
+                for (const component of structure.components) {
+                    for (const representation of component.representations) {
+                        const { colorTheme, type, sizeTheme } = representation.cell.transform.params!;
+                        this.defaultProps.set(representation.cell.transform.ref!, {
+                            colorTheme: colorTheme as any,
+                            type: type as any,
+                            sizeTheme: sizeTheme as any
+                        });
+                    }
+                }
+            }
+        });
+    }
+
+    private async updateType(name: Representation3D.Type['name']) {
+        await this.plugin.dataTransaction(async () => {
+            for (const structure of this.plugin.managers.structure.hierarchy.current.structures) {
+                const update = this.plugin.state.data.build();
+                for (const component of structure.components) {
+                    for (const representation of component.representations) {
+                        let type, sizeTheme;
+                        
+                        if (!this.defaultProps.has(representation.cell.transform.ref)) continue;
+
+                        if (name === this.ballAndStickTypeProps.type.name) {
+                            type = this.ballAndStickTypeProps.type;
+                            sizeTheme = this.ballAndStickTypeProps.sizeTheme;
+                        } else if (name === this.surfaceTypeProps.type.name) {
+                            type = this.surfaceTypeProps.type;
+                            sizeTheme = this.surfaceTypeProps.sizeTheme;
+                        } else {
+                            type = this.defaultProps.get(representation.cell.transform.ref)!.type;
+                            sizeTheme = this.defaultProps.get(representation.cell.transform.ref)!.sizeTheme;
+                        }
+
+                        const oldProps = representation.cell.transform.params!;
+                        const mergedProps = merge({}, oldProps, { type, sizeTheme });
+                        update.to(representation.cell).update(mergedProps);
+                    }
+                }
+                await update.commit({ canUndo: 'Update Theme' });
+            }
+            this.updateGranularity(name);
+        });
+    }
+
+    private async updateColor(name: Representation3D.Color['name'], params: Representation3D.Color['params'] = {}) {
+        await this.plugin.dataTransaction(async () => {
+            for (const structure of this.plugin.managers.structure.hierarchy.current.structures) {
+                const update = this.plugin.state.data.build();
+                for (const component of structure.components) {
+                    for (const representation of component.representations) {
+                        let colorTheme: Representation3D.Color;
+                        
+                        if (!this.defaultProps.has(representation.cell.transform.ref)) {
+                            colorTheme = this.elementSymbolColorProps;
+                        }
+                        else if (name === this.partialChargesColorProps.name) {
+                            colorTheme = this.partialChargesColorProps;
+                        } else {
+                            colorTheme = this.defaultProps.get(representation.cell.transform.ref)!.colorTheme;
+                        }
+
+                        const oldProps = representation.cell.transform.params!;
+                        const mergedProps = merge({}, oldProps, { colorTheme }, { colorTheme: { params }});
+                        update.to(representation.cell).update(mergedProps);
+                    }
+                }
+                await update.commit({ canUndo: 'Update Theme' });
+            }
+            await this.updateFocusColorTheme(name, params);
+        });
+    }
+
+    private updateGranularity(type: Representation3D.Type['name']) {
+        this.plugin.managers.interactivity.setProps({ granularity: type === 'default' ? 'residue' : 'element' });
+    }
+
+    // TODO: test if charge range works
+    private async updateFocusColorTheme(color: Representation3D.Color['name'], params: Representation3D.Color['params'] = {}) {
+        const props = color === 'acc2-partial-charges' ? this.partialChargesColorProps : this.elementSymbolColorProps;
+        await this.plugin.state.updateBehavior(StructureFocusRepresentation, p => {
+            p.targetParams.colorTheme = { name: props.name, params: { ...props.params, ...params } };
+            p.surroundingsParams.colorTheme = { name: props.name, params: { ...props.params, ...params } };
+        });
+    }
+
+    private async updateModelPropertyData(typeId: number) {
+        const model = this.getModel();
+        if (!model || !this.isTypeIdValid(model, typeId)) return;
+        ACC2PropertyProvider.set(model, { typeId });
+        await this.updateColor('acc2-partial-charges', { typeId });
+    };
+
+    private getModel() {
+        return this.plugin.managers.structure.hierarchy.current.structures[0].model?.cell?.obj?.data;
+    }
+
+    private isTypeIdValid(model: Model, typeId: number) {
+        const sourceData = model.sourceData as MmcifFormat;
+        const typeIds = new Set(sourceData.data.frame.categories.partial_atomic_charges.getField('type_id')?.toIntArray());
+        return typeIds.has(typeId);
+    }
 }
