@@ -1,14 +1,27 @@
-import { defineConfig } from 'vite'
+import { resolve } from 'path';
+import { defineConfig } from 'vite';
+import dts from 'vite-plugin-dts';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  define: {
+    'process.env.NODE_ENV': '"production"',
+  },
   build: {
-    reportCompressedSize: false,
+    outDir: 'dist',
+    sourcemap: true,
+    minify: true,
+    manifest: true,
+    reportCompressedSize: true,
     emptyOutDir: true,
     lib: {
-      entry: './src/index.ts',
       name: 'Molstar Partial Charges',
-      fileName: (format) => `molstar-partial-charges.${format}.js`
+      entry: resolve(__dirname, "src/main.ts"),
+      formats: ['es', 'cjs'],
+      fileName: (format) => `main.${format}.js`
     },
   },
+  plugins: [
+    dts(),
+  ],
 })
