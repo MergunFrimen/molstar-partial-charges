@@ -17,5 +17,5 @@
         "declarationDir": "dist",
         "emitDeclarationOnly": true
     },
-    "include": ["src", "examples"]
+    "include": ["src", "vite.config.ts"]
 }
