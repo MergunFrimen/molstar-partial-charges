@@ -19,4 +19,5 @@ yarn-error.log*
 
 # other
 .prettierignore
+.eslintignore
 LICENSE
