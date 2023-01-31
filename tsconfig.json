@@ -14,8 +14,10 @@
         "noUnusedParameters": true,
         "noImplicitReturns": true,
         "declaration": true,
+        "declarationMap": true,
         "declarationDir": "dist",
-        "emitDeclarationOnly": true
+        "noEmit": true,
+        "forceConsistentCasingInFileNames": true
     },
     "include": ["src", "vite.config.ts"]
 }
