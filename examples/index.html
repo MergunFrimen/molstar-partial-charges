@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+        <title>Mol* ACC2 Wrapper</title>
+        <link href="../dist/style.css" rel="stylesheet"></link>
+        <script src="../dist/main.cjs.js"></script>
+    </head>
+    <body>
+        <div id='controls'></div>
+        <div id="root" style="height: 750px;"></div>
+        <script>
+            const specs = {
+                layout: {
+                    initial: {
+                        isExpanded: false,
+                        showControls: false,
+                    }
+                },
+            };
+            const molstar = new ACC2PartialChargesWrapper();
+            (async () => {
+                await molstar.init('root', specs);
+                await molstar.load('https://files.rcsb.org/view/8DBR.cif');
+            })();
+        </script>
+    </body>
+</html>
