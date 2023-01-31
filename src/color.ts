@@ -4,14 +4,14 @@ import { ThemeDataContext } from 'molstar/lib/mol-theme/theme';
 import { Color } from 'molstar/lib/mol-util/color';
 import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
 import { Location } from 'molstar/lib/mol-model/location';
-import { ACC2Property, ACC2PropertyProvider } from './property';
+import { ACC2PropertyProvider, isApplicable } from './property';
 import { CustomProperty } from 'molstar/lib/mol-model-props/common/custom-property';
 
 const Colors = {
     Bond: Color(0x999999),
     Error: Color(0x00ff00),
     MissingCharge: Color(0xffffff),
-}
+};
 
 export const ACC2ColorThemeParams = {
     max: PD.Numeric(0, { min: 0 }),
@@ -36,7 +36,7 @@ function getColor(chargeValue: number, maxAbsoluteCharge: number): Color {
         mid: 0,
         max: maxAbsoluteCharge,
     };
-    
+
     // TODO: is this necessary?
     if (chargeRange.min === chargeRange.max || chargeValue < chargeRange.min || chargeValue > chargeRange.max) {
         const defaultColor = Color(0xffffff);
@@ -44,18 +44,22 @@ function getColor(chargeValue: number, maxAbsoluteCharge: number): Color {
     }
 
     if (chargeValue < chargeRange.mid) {
-        const d = (chargeRange.mid - chargeRange.min) || 1;
+        const d = chargeRange.mid - chargeRange.min || 1;
         const t = (chargeValue - chargeRange.min) / d;
         return Color.interpolate(colors.min, colors.mid, t);
     } else {
-        const d = (chargeRange.max - chargeRange.mid) || 1;
+        const d = chargeRange.max - chargeRange.mid || 1;
         const t = (chargeValue - chargeRange.mid) / d;
         return Color.interpolate(colors.mid, colors.max, t);
     }
 }
 
-export function ACC2ColorTheme(ctx: ThemeDataContext, props: PD.Values<ACC2ColorThemeParams>): ColorTheme<ACC2ColorThemeParams> {
-    const model = ctx.structure?.models[0]!;
+export function ACC2ColorTheme(
+    ctx: ThemeDataContext,
+    props: PD.Values<ACC2ColorThemeParams>
+): ColorTheme<ACC2ColorThemeParams> {
+    const model = ctx.structure?.models[0];
+    if (!model) throw new Error('No model found');
     const data = ACC2PropertyProvider.get(model).value?.data;
     const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
     ACC2ColorThemeParams.typeId.defaultValue = typeId;
@@ -67,8 +71,8 @@ export function ACC2ColorTheme(ctx: ThemeDataContext, props: PD.Values<ACC2Color
 
         const { atomIdToCharge, residueToCharge, maxAbsoluteCharges } = data;
         const { absolute, showResidueCharge: isResidue } = props;
-        
-        const maxAbsoluteCharge = absolute ? props.max : maxAbsoluteCharges.get(typeId)!;
+
+        const maxAbsoluteCharge = absolute ? props.max : maxAbsoluteCharges.get(typeId) || 0;
         const id = StructureProperties.atom.id(location);
         const charges = isResidue ? residueToCharge.get(typeId) : atomIdToCharge.get(typeId);
         const chargeValue = charges?.get(id);
@@ -93,9 +97,13 @@ export const ACC2ColorThemeProvider: ColorTheme.Provider<ACC2ColorThemeParams, '
     factory: ACC2ColorTheme,
     getParams: getACC2ColorThemeParams,
     defaultValues: PD.getDefaultValues(ACC2ColorThemeParams),
-    isApplicable: (ctx: ThemeDataContext) => !!ctx.structure && ctx.structure.models.some(model => ACC2Property.isApplicable(model)),
+    isApplicable: (ctx: ThemeDataContext) =>
+        !!ctx.structure && ctx.structure.models.some((model) => isApplicable(model)),
     ensureCustomProperties: {
-        attach: (ctx: CustomProperty.Context, data: ThemeDataContext) => data.structure ? ACC2PropertyProvider.attach(ctx, data.structure.models[0], void 0, true) : Promise.resolve(),
-        detach: (data) => data.structure && ACC2PropertyProvider.ref(data.structure.models[0], false)
-    }
+        attach: (ctx: CustomProperty.Context, data: ThemeDataContext) =>
+            data.structure
+                ? ACC2PropertyProvider.attach(ctx, data.structure.models[0], void 0, true)
+                : Promise.resolve(),
+        detach: (data) => data.structure && ACC2PropertyProvider.ref(data.structure.models[0], false),
+    },
 };
