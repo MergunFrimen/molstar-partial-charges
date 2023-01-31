@@ -21,8 +21,7 @@ import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
  *
  * This class provides a simple interface for loading structures and setting representations.
  */
-// export default class ACC2PartialChargesWrapper {
-class ACC2PartialChargesWrapper {
+export default class MolstarPartialCharges {
     private plugin!: PluginUIContext;
 
     /**
@@ -31,7 +30,15 @@ class ACC2PartialChargesWrapper {
      * @param target ID of the HTML element to attach the plugin to
      * @param specs PluginUISpec to override default plugin settings
      */
-    async init(target: string, specs?: PluginUISpec) {
+    async init(target: string) {
+        const specs = {
+            layout: {
+                initial: {
+                    isExpanded: false,
+                    showControls: false,
+                },
+            },
+        };
         const mergedSpecs: PluginUISpec = merge({}, DefaultPluginUISpec(), specs);
         mergedSpecs.behaviors.push(PluginSpec.Behavior(ACC2LociLabelProvider));
 
@@ -320,7 +327,7 @@ class ACC2PartialChargesWrapper {
     private isTypeIdValid(model: Model, typeId: number) {
         const sourceData = model.sourceData as MmcifFormat;
         const typeIds = new Set(
-            sourceData.data.frame.categories.partial_atomic_charges.getField('type_id')?.toIntArray()
+            sourceData.data.frame.categories.partial_atomic_charges_meta.getField('type')?.toIntArray()
         );
         return typeIds.has(typeId);
     }
@@ -328,10 +335,8 @@ class ACC2PartialChargesWrapper {
 
 declare global {
     interface Window {
-        ACC2PartialChargesWrapper: typeof ACC2PartialChargesWrapper;
+        ACC2PartialChargesWrapper: typeof MolstarPartialCharges;
     }
 }
 
-window.ACC2PartialChargesWrapper = ACC2PartialChargesWrapper;
-
-export default ACC2PartialChargesWrapper;
+window.ACC2PartialChargesWrapper = MolstarPartialCharges;

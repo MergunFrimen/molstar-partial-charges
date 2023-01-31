@@ -1,5 +1,5 @@
 import './style.css';
-import ACC2PartialChargesWrapper from '../src/main';
+import MolstarPartialCharges from '../src/main';
 
 /**
  * Example use of the plugin wrapper
@@ -32,7 +32,7 @@ const examples = [
     'molecules.sdf.charges.cif',
 ];
 
-const molstar = new ACC2PartialChargesWrapper();
+const molstar = new MolstarPartialCharges();
 
 // for debugging purposes
 declare global {
@@ -42,18 +42,8 @@ declare global {
 }
 window.molstar = molstar;
 
-const pluginSpecs = {
-    layout: {
-        initial: {
-            isExpanded: false,
-            showControls: false,
-        },
-    },
-    behaviors: [],
-};
-
 (async () => {
-    await molstar.init('app', pluginSpecs);
+    await molstar.init('app');
     await molstar.load(url);
 
     await molstar.color.partialCharges();
