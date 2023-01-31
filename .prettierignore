@@ -14,4 +14,9 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # git
+**/.gitignore
 **/.git
+
+# other
+.prettierignore
+LICENSE

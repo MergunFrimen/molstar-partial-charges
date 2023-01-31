@@ -4,8 +4,7 @@ Molstar plugin for viewing charges of atoms and residues.
 
 This plugin is based on the [Molstar](https://molstar.org/) library and uses the [mmCIF](https://mmcif.wwpdb.org/) format for storing the data about atomic partial charges. It was created for [ACC2](https://acc2.ncbr.muni.cz/) and [αCharges](https://alphacharges.ncbr.muni.cz/), however, it can be used in other projects that uses the same mmCIF format for storing atomic partial charges.
 
-
-<!-- 
+<!--
 ## Requirements
 
 - [Node.js](https://nodejs.org/en/)
@@ -42,7 +41,7 @@ plugin.init(root, specs).then(async () => {
 });
 ```
 
-To load a structure from 
+To load a structure from
 
 ## Development
 
