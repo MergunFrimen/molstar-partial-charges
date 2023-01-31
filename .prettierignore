@@ -14,10 +14,11 @@ yarn-error.log*
 .pnpm-debug.log*
 
 # git
-**/.gitignore
 **/.git
 
+# ignore files
+**/.*ignore
+
 # other
-.prettierignore
-.eslintignore
+package-lock.json
 LICENSE
