@@ -1,1 +1,5 @@
-.prettierignore
+# ignore all
+*
+
+# don't ignore any of the files in src
+!src/
