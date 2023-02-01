@@ -70,7 +70,8 @@
 
             function switchOffCartoonView() {
                 const view = document.getElementById('controls-view-default');
-                if (!molstar.type.isDefaultApplicable) view.setAttribute('disabled', 'true');
+                if (!molstar.type.isDefaultApplicable()) view.setAttribute('disabled', 'true');
+                else view.removeAttribute('disabled');
             }
 
             function updateCharge(charge) {
