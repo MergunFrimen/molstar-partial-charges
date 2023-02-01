@@ -12,7 +12,7 @@ import merge from 'lodash.merge';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 import { Model } from 'molstar/lib/mol-model/structure';
 import { BallAndStickRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/ball-and-stick';
-import { GaussianSurfaceRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/gaussian-surface';
+import { MolecularSurfaceRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/molecular-surface';
 import { ElementSymbolColorThemeProvider } from 'molstar/lib/mol-theme/color/element-symbol';
 import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
 
@@ -173,13 +173,13 @@ export default class MolstarPartialCharges {
         sizeTheme: Size;
     } = {
         type: {
-            name: 'ball-and-stick',
+            name: BallAndStickRepresentationProvider.name,
             params: {
                 ...BallAndStickRepresentationProvider.defaultValues,
             },
         },
         sizeTheme: {
-            name: 'physical',
+            name: PhysicalSizeThemeProvider.name,
             params: {
                 ...PhysicalSizeThemeProvider.defaultValues,
             },
@@ -190,13 +190,13 @@ export default class MolstarPartialCharges {
         sizeTheme: Size;
     } = {
         type: {
-            name: 'molecular-surface',
+            name: MolecularSurfaceRepresentationProvider.name,
             params: {
-                ...GaussianSurfaceRepresentationProvider.defaultValues,
+                ...MolecularSurfaceRepresentationProvider.defaultValues,
             },
         },
         sizeTheme: {
-            name: 'physical',
+            name: PhysicalSizeThemeProvider.name,
             params: {
                 ...PhysicalSizeThemeProvider.defaultValues,
                 scale: 1.7,
@@ -204,13 +204,13 @@ export default class MolstarPartialCharges {
         },
     };
     private readonly partialChargesColorProps: Color = {
-        name: 'acc2-partial-charges',
+        name: ACC2ColorThemeProvider.name,
         params: {
             // purposefully not using default values
         },
     };
     private readonly elementSymbolColorProps: Color = {
-        name: 'element-symbol',
+        name: ElementSymbolColorThemeProvider.name,
         params: {
             ...ElementSymbolColorThemeProvider.defaultValues,
         },
