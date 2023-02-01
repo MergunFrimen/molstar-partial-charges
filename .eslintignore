@@ -1,5 +1,6 @@
-# ignore all
-*
-
-# don't ignore any of the files in src
-!src/
+.husky
+.vscode/*
+dist/*
+node_modules/*
+examples/*
+jest.config.js
