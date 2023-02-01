@@ -14,7 +14,7 @@ export default defineConfig({
             name: 'MolstarPartialCharges',
             entry: resolve(__dirname, 'src/index.ts'),
             formats: ['umd', 'es'],
-            fileName: (format) => `main.${format}.js`,
+            fileName: (format) => `index.${format}.js`,
         },
     },
     plugins: [dts()],

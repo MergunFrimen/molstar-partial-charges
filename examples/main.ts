@@ -1,5 +1,5 @@
 import './style.css';
-import MolstarPartialCharges from '../main';
+import MolstarPartialCharges from '../src/viewer/main';
 
 /**
  * Example use of the plugin wrapper

@@ -28,16 +28,16 @@ export default class MolstarPartialCharges {
      * Initialize the plugin and attach it to the given HTML element.
      *
      * @param target ID of the HTML element to attach the plugin to
-     * @param specs PluginUISpec to override default plugin settings
      */
     async init(target: string) {
-        const specs = {
+        const specs: PluginSpec = {
             layout: {
                 initial: {
                     isExpanded: false,
                     showControls: false,
                 },
             },
+            behaviors: [],
         };
         const mergedSpecs: PluginUISpec = merge({}, DefaultPluginUISpec(), specs);
         mergedSpecs.behaviors.push(PluginSpec.Behavior(ACC2LociLabelProvider));
@@ -332,11 +332,3 @@ export default class MolstarPartialCharges {
         return typeIds.has(typeId);
     }
 }
-
-declare global {
-    interface Window {
-        ACC2PartialChargesWrapper: typeof MolstarPartialCharges;
-    }
-}
-
-window.ACC2PartialChargesWrapper = MolstarPartialCharges;
