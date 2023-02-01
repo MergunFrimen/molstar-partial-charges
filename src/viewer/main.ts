@@ -99,6 +99,12 @@ export default class MolstarPartialCharges {
                 absolute: false,
             });
         },
+        getRelativeCharge: () => {
+            const model = this.getModel();
+            if (!model) throw new Error('No model loaded.');
+            const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
+            return ACC2PropertyProvider.get(model).value?.data?.maxAbsoluteCharges.get(typeId);
+        },
     };
 
     color = {
