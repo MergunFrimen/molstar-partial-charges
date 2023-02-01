@@ -5,7 +5,7 @@
 }
 #app {
     position: absolute;
-    left: 160px;
+    left: 200px;
     top: 10px;
     width: 600px;
     height: 600px;
@@ -13,7 +13,7 @@
 }
 #controls {
     position: absolute;
-    width: 130px;
+    width: 150px;
     top: 10px;
     left: 10px;
 }
@@ -25,7 +25,8 @@
 #controls > hr {
     margin: 5px 0;
 }
-#controls > input, #controls > select {
+#controls > input,
+#controls > select {
     width: 100%;
     display: block;
 }

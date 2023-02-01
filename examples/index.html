@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
+        <title>Mol* ACC2 Wrapper</title>
+        <link href="../dist/style.css" rel="stylesheet" />
+        <link href="./style.css" rel="stylesheet" />
+        <script src="../dist/main.umd.js"></script>
+    </head>
+    <body>
+        <div id="controls"></div>
+        <div id="app"></div>
+        <script>
+            const polymer_structure =
+                'https://raw.githubusercontent.com/MergunFrimen/molstar-partial-charges/master/examples/3bj1.charges.cif';
+            const non_polymer_structure =
+                'https://raw.githubusercontent.com/MergunFrimen/molstar-partial-charges/master/examples/2_4_dinitrophenol.charges.cif';
+
+            const molstar = new MolstarPartialCharges();
+
+            (async () => {
+                // Initialize Mol* and load the default structure
+                await molstar.init('app');
+                await molstar.load(polymer_structure);
+                await molstar.color.partialCharges();
+
+                if (!molstar.type.isDefaultApplicable()) {
+                    document.getElementById('controls-view-default')?.setAttribute('disabled', 'true');
+                }
+            })().then(
+                () => console.log('Mol* ACC2 Wrapper initialized'),
+                (e) => console.error('Mol* ACC2 Wrapper initialization failed', e)
+            );
+
+            addHeader('Color');
+            addControl('Default\n(=Element symbol)', async () => await molstar.color.default());
+            addControl('Partial Charges', async () => await molstar.color.partialCharges());
+
+            addHeader('View');
+            addControl('Default\n(=Cartoon)', async () => await molstar.type.default(), 'controls-view-default');
+            addControl('Surface', async () => await molstar.type.surface());
+            addControl('Ball and stick', async () => await molstar.type.ballAndStick());
+
+            addHeader('Charges');
+            addControl('Relative', async () => await molstar.charges.relative());
+            addControl('Absolute (0.2)', async () => await molstar.charges.absolute(0.2));
+
+            function addInput(id, placeholder) {
+                const input = document.createElement('input');
+                input.setAttribute('id', id);
+                input.setAttribute('type', 'text');
+                input.setAttribute('placeholder', placeholder);
+                document.getElementById('controls')?.appendChild(input);
+            }
+
+            function addControl(label, action, id) {
+                const btn = document.createElement('button');
+                btn.onclick = action;
+                btn.innerText = label;
+                if (id) btn.setAttribute('id', id);
+                document.getElementById('controls')?.appendChild(btn);
+            }
+
+            function addSeparator() {
+                const hr = document.createElement('hr');
+                document.getElementById('controls')?.appendChild(hr);
+            }
+
+            function addHeader(header) {
+                addSeparator();
+                const h = document.createElement('h3');
+                h.innerText = header;
+                document.getElementById('controls')?.appendChild(h);
+            }
+        </script>
+    </body>
+</html>
