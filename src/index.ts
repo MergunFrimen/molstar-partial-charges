@@ -2,10 +2,10 @@ import MolstarPartialCharges from './viewer/main';
 
 declare global {
     interface Window {
-        ACC2PartialChargesWrapper: typeof MolstarPartialCharges;
+        MolstarPartialCharges: typeof MolstarPartialCharges;
     }
 }
 
-window.ACC2PartialChargesWrapper = MolstarPartialCharges;
+window.MolstarPartialCharges = MolstarPartialCharges;
 
 export default MolstarPartialCharges;
