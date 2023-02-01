@@ -48,8 +48,8 @@ window.molstar = molstar;
     await molstar.init('app');
     await load(default_structure_url);
 })().then(
-    () => console.log('Mol* ACC2 Wrapper initialized'),
-    (e) => console.error('Mol* ACC2 Wrapper initialization failed', e)
+    () => console.log('Molstar Partial Charges initialized'),
+    (e) => console.error('Molstar Partial Charges initialization failed', e)
 );
 
 addHeader('View');
@@ -63,8 +63,9 @@ addControl('Absolute input', async () => {
     const input = document.getElementById('max-charge') as HTMLInputElement;
     if (!input) return;
     const value = input.value;
-    const defaultValue = !isNaN(+input.placeholder) ? parseFloat(input.placeholder) : 0;
-    const parsed = value === undefined ? parseFloat(value) : defaultValue;
+    const placeholder = input.placeholder;
+    const defaultValue = !isNaN(Number(placeholder)) ? Number(placeholder) : 0;
+    const parsed = value !== '' && !isNaN(Number(value)) ? Number(value) : defaultValue;
     updateCharge(parsed);
     await molstar.color.absolute(parsed);
 });
@@ -86,33 +87,37 @@ addControl('Relative', async () => {
 addSlider('charge-slider', 0, 1, 0.001, async () => {
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!slider) return;
-    const chg = parseFloat(slider.value);
+    const chg = Number(slider.value);
     updateCharge(chg);
     await molstar.color.absolute(charge);
 });
 
-addHeader('Change type');
+addHeader('Change charge set');
 addInput('type-id', '1');
-addControl('Set typeId', () =>
-    molstar.charges.setTypeId(parseInt((document.getElementById('') as HTMLInputElement).value))
-);
 addControl('Set typeId', async () => {
-    const value = (document.getElementById('type-id') as HTMLInputElement).value;
-    const parsed = value ? parseInt(value) : 1;
+    const input = document.getElementById('type-id') as HTMLInputElement;
+    if (!input) return;
+    const value = input.value;
+    const placeholder = input.placeholder;
+    const defaultValue = !isNaN(Number(placeholder)) ? Number(placeholder) : 1;
+    const parsed = value !== '' && !isNaN(Number(value)) ? Number(value) : defaultValue;
     await molstar.charges.setTypeId(parsed);
 });
 
 addHeader('Load');
 addControl('Next example', nextExample);
-addDropdown('examples-dropdown', examples, nextExample);
+addDropdown('examples-dropdown', examples, async (value) => await load(url_prefix + value));
 
 async function load(url: string) {
     await molstar.load(url);
     const cartoonOff = switchOffCartoonView();
-    if (cartoonOff) await molstar.type.ballAndStick();
-    else await molstar.type.default();
+    if (cartoonOff) {
+        await molstar.type.ballAndStick();
+    } else {
+        await molstar.type.default();
+    }
     await molstar.color.relative();
-    const maxAbsoluteRelativeCharge = molstar.charges.getRelativeCharge();
+    let maxAbsoluteRelativeCharge = Number(molstar.charges.getRelativeCharge().toFixed(3));
     updateCharge(maxAbsoluteRelativeCharge);
     updateSliderMax(maxAbsoluteRelativeCharge);
 }
@@ -131,14 +136,12 @@ function switchOffCartoonView() {
 
 function updateCharge(chg: number) {
     if (isNaN(chg)) return;
-    if (chg < 0) chg = 0;
-    charge = chg;
+    charge = chg < 0 ? 0 : chg;
     const header = document.getElementById('controls-charge-header') as HTMLHeadingElement;
-    if (!header) return;
-    header.innerText = `Charge (${charge.toFixed(3)})`;
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
-    if (!slider) return;
-    slider.value = charge.toString();
+    if (!header || !slider) return;
+    header.innerText = `Charge (${charge.toFixed(3)})`;
+    slider.setAttribute('value', `${charge.toFixed(3)}`);
 }
 
 function addControl(label: string, action: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null, id?: string) {
@@ -182,7 +185,7 @@ function addSlider(id: string, min: number, max: number, step: number, action) {
 function updateSliderMax(maxAbsoluteRelativeCharge: number) {
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!slider) return;
-    slider.max = `${maxAbsoluteRelativeCharge}`;
+    slider.max = maxAbsoluteRelativeCharge.toFixed(3);
 }
 
 async function nextExample() {
