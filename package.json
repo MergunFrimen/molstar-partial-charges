@@ -1,9 +1,10 @@
 {
     "name": "molstar-partial-charges",
-    "version": "0.0.0",
+    "version": "0.0.1",
     "description": "Molstar plugin for partial charges",
     "author": "Dominik Tichý",
     "license": "MIT",
+    "homepage": "https://github.com/MergunFrimen/molstar-partial-charges.git#readme",
     "repository": {
         "type": "git",
         "url": "https://github.com/MergunFrimen/molstar-partial-charges.git"
@@ -12,21 +13,18 @@
         "url": "https://github.com/MergunFrimen/molstar-partial-charges/issues"
     },
     "keywords": [
-        "molstar"
+        "molstar",
+        "3D viewer",
+        "atomic charges",
+        "protein"
     ],
     "type": "module",
-    "main": "./dist/molstar-partial-charges.umd.cjs",
-    "module": "./dist/molstar-partial-charges.es.js",
+    "main": "./dist/index.umd.js",
+    "module": "./dist/index.es.js",
     "types": "./dist/index.d.ts",
     "files": [
-        "dist"
+        "dist/"
     ],
-    "exports": {
-        ".": {
-            "import": "./dist/molstar-partial-charges.es.js",
-            "require": "./dist/molstar-partial-charges.umd.cjs"
-        }
-    },
     "scripts": {
         "dev": "vite",
         "build": "tsc && vite build",
@@ -44,7 +42,6 @@
         "@types/node": "^18.11.18",
         "@typescript-eslint/eslint-plugin": "^5.50.0",
         "@typescript-eslint/parser": "^5.50.0",
-        "commitizen": "^4.3.0",
         "cz-conventional-changelog": "^3.3.0",
         "eslint": "^8.33.0",
         "eslint-config-prettier": "^8.6.0",
@@ -62,10 +59,5 @@
         "typescript": "^4.9.5",
         "vite": "^4.0.0",
         "vite-plugin-dts": "^1.7.1"
-    },
-    "config": {
-        "commitizen": {
-            "path": "./node_modules/cz-conventional-changelog"
-        }
     }
 }
