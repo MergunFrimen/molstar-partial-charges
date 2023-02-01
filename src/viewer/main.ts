@@ -1,6 +1,6 @@
 import { createPluginUI } from 'molstar/lib/mol-plugin-ui/react18';
 import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
-import { DefaultPluginUISpec, PluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
+import { DefaultPluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
 import { StructureFocusRepresentation } from 'molstar/lib/mol-plugin/behavior/dynamic/selection/structure-focus-representation';
 import { PluginSpec } from 'molstar/lib/mol-plugin/spec';
 import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
@@ -31,21 +31,20 @@ export default class MolstarPartialCharges {
      */
     async init(target: string) {
         const specs: PluginSpec = {
+            ...DefaultPluginUISpec(),
             layout: {
                 initial: {
                     isExpanded: false,
                     showControls: false,
                 },
             },
-            behaviors: [],
+            behaviors: [...DefaultPluginUISpec().behaviors, PluginSpec.Behavior(ACC2LociLabelProvider)],
         };
-        const mergedSpecs: PluginUISpec = merge({}, DefaultPluginUISpec(), specs);
-        mergedSpecs.behaviors.push(PluginSpec.Behavior(ACC2LociLabelProvider));
 
         const root = document.getElementById(target);
         if (!root) throw new Error(`Element with ID '${target}' not found.`);
 
-        this.plugin = await createPluginUI(root, mergedSpecs);
+        this.plugin = await createPluginUI(root, specs);
 
         this.plugin.customModelProperties.register(ACC2PropertyProvider, true);
         this.plugin.representation.structure.themes.colorThemeRegistry.add(ACC2ColorThemeProvider);
