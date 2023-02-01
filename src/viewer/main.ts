@@ -77,6 +77,23 @@ export default class MolstarPartialCharges {
         setTypeId: async (typeId: number) => {
             await this.updateModelPropertyData(typeId);
         },
+        getRelativeCharge: () => {
+            const model = this.getModel();
+            if (!model) throw new Error('No model loaded.');
+            const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
+            const charge = ACC2PropertyProvider.get(model).value?.data?.maxAbsoluteCharges.get(typeId);
+            if (!charge) throw new Error('No charge found.');
+            return charge;
+        },
+    };
+
+    color = {
+        /**
+         * Set the color theme to the default color theme (whatever Molstar picks).
+         */
+        default: async () => {
+            await this.updateColor('default');
+        },
         /**
          * Set the partial charge range to absolute.
          *
@@ -95,24 +112,6 @@ export default class MolstarPartialCharges {
             await this.updateColor(this.partialChargesColorProps.name, {
                 absolute: false,
             });
-        },
-        getRelativeCharge: () => {
-            const model = this.getModel();
-            if (!model) throw new Error('No model loaded.');
-            const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
-            return ACC2PropertyProvider.get(model).value?.data?.maxAbsoluteCharges.get(typeId);
-        },
-    };
-
-    color = {
-        /**
-         * Set the color theme to the default color theme (whatever Molstar picks).
-         */
-        default: async () => {
-            await this.updateColor('default');
-        },
-        partialCharges: async () => {
-            await this.updateColor(this.partialChargesColorProps.name);
         },
     };
 
