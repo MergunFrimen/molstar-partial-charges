@@ -62,15 +62,22 @@
 
             async function load(url) {
                 await molstar.load(url);
-                switchOffCartoonView();
+                const cartoonOff = switchOffCartoonView();
+                if (cartoonOff) await molstar.type.ballAndStick();
+                else await molstar.type.default();
                 await molstar.color.partialCharges();
                 updateCharge(molstar.charges.getRelativeCharge());
             }
 
             function switchOffCartoonView() {
                 const view = document.getElementById('controls-view-default');
-                if (!molstar.type.isDefaultApplicable()) view.setAttribute('disabled', 'true');
-                else view.removeAttribute('disabled');
+                if (!molstar.type.isDefaultApplicable()) {
+                    view.setAttribute('disabled', 'true');
+                    return true;
+                } else {
+                    view.removeAttribute('disabled');
+                    return false;
+                }
             }
 
             function updateCharge(charge) {
