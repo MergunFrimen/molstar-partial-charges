@@ -21,7 +21,6 @@ const examples = [
     '1cp8.cif.charges.cif',
     '2_4_dinitrophenol.sdf.charges.cif',
     '2p7d.cif.charges.cif',
-    // '3bj1.cif.charges.cif',
     '3c1p.cif.charges.cif',
     '3wpc.cif.charges.cif',
     '5boq.cif.charges.cif',
@@ -53,29 +52,19 @@ window.molstar = molstar;
     (e) => console.error('Mol* ACC2 Wrapper initialization failed', e)
 );
 
-addHeader('Load');
-addControl('Next example', nextExample);
-// for (const example of examples) {
-//     addControl(example.replace('.charges.cif', ''), async () => {
-//         await molstar.load(url_prefix + example);
-
-//         await molstar.color.partialCharges();
-//         if (molstar.type.isDefaultApplicable()) await molstar.type.default();
-//         else await molstar.type.ballAndStick();
-//     });
-// }
-
 addHeader('View');
 addControl('Default\n(=Cartoon)', async () => await molstar.type.default(), 'controls-view-default');
 addControl('Surface', async () => await molstar.type.surface());
 addControl('Ball and stick', async () => await molstar.type.ballAndStick());
 
-// TODO: replace `partialCharges` with `relative`
 addHeader('Color', 'controls-charge-header');
 addControl('Default\n(=Element symbol)', async () => await molstar.color.default());
 addControl('Absolute input', async () => {
-    const value = (document.getElementById('max-charge') as HTMLInputElement).value;
-    const parsed = value ? parseFloat(value) : 0.2;
+    const input = document.getElementById('max-charge') as HTMLInputElement;
+    if (!input) return;
+    const value = input.value;
+    const defaultValue = !isNaN(+input.placeholder) ? parseFloat(input.placeholder) : 0;
+    const parsed = value === undefined ? parseFloat(value) : defaultValue;
     updateCharge(parsed);
     await molstar.color.absolute(parsed);
 });
@@ -93,7 +82,7 @@ addControl('Relative', async () => {
     updateCharge(relativeCharge);
     await molstar.color.relative();
 });
-// TODO: change range based on absolute relative max charge
+// TODO: set max to max absolute charge (should dynamically update based on users input of absolute charge)
 addSlider('charge-slider', 0, 1, 0.001, async () => {
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!slider) return;
@@ -101,9 +90,7 @@ addSlider('charge-slider', 0, 1, 0.001, async () => {
     updateCharge(chg);
     await molstar.color.absolute(charge);
 });
-addControl('Partial Charges (broken)', async () => await molstar.color.relative());
 
-addSeparator();
 addHeader('Change type');
 addInput('type-id', '1');
 addControl('Set typeId', () =>
@@ -115,6 +102,10 @@ addControl('Set typeId', async () => {
     await molstar.charges.setTypeId(parsed);
 });
 
+addHeader('Load');
+addControl('Next example', nextExample);
+addDropdown('examples-dropdown', examples, nextExample);
+
 async function load(url: string) {
     await molstar.load(url);
     const cartoonOff = switchOffCartoonView();
@@ -123,7 +114,7 @@ async function load(url: string) {
     await molstar.color.relative();
     const maxAbsoluteRelativeCharge = molstar.charges.getRelativeCharge();
     updateCharge(maxAbsoluteRelativeCharge);
-    updateSlider(maxAbsoluteRelativeCharge);
+    updateSliderMax(maxAbsoluteRelativeCharge);
 }
 
 function switchOffCartoonView() {
@@ -139,10 +130,15 @@ function switchOffCartoonView() {
 }
 
 function updateCharge(chg: number) {
+    if (isNaN(chg)) return;
+    if (chg < 0) chg = 0;
     charge = chg;
-    const header = document.getElementById('controls-charge-header');
+    const header = document.getElementById('controls-charge-header') as HTMLHeadingElement;
     if (!header) return;
     header.innerText = `Charge (${charge.toFixed(3)})`;
+    const slider = document.getElementById('charge-slider') as HTMLInputElement;
+    if (!slider) return;
+    slider.value = charge.toString();
 }
 
 function addControl(label: string, action: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null, id?: string) {
@@ -153,13 +149,9 @@ function addControl(label: string, action: ((this: GlobalEventHandlers, ev: Mous
     document.getElementById('controls')?.appendChild(btn);
 }
 
-function addSeparator() {
+function addHeader(header: string, id?: string) {
     const hr = document.createElement('hr');
     document.getElementById('controls')?.appendChild(hr);
-}
-
-function addHeader(header: string, id?: string) {
-    addSeparator();
     const h = document.createElement('h3');
     h.innerText = header;
     if (id) h.setAttribute('id', id);
@@ -187,7 +179,7 @@ function addSlider(id: string, min: number, max: number, step: number, action) {
     document.getElementById('controls')?.appendChild(slider);
 }
 
-function updateSlider(maxAbsoluteRelativeCharge: number) {
+function updateSliderMax(maxAbsoluteRelativeCharge: number) {
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!slider) return;
     slider.max = `${maxAbsoluteRelativeCharge}`;
@@ -196,4 +188,17 @@ function updateSlider(maxAbsoluteRelativeCharge: number) {
 async function nextExample() {
     current_example = (current_example + 1) % examples.length;
     await load(url_prefix + `${examples[current_example % examples.length]}`);
+}
+
+function addDropdown(id: string, options: string[], action: (value: string) => any) {
+    const select = document.createElement('select');
+    select.setAttribute('id', id);
+    for (const option of options) {
+        const opt = document.createElement('option');
+        opt.setAttribute('value', option);
+        opt.innerText = option;
+        select.appendChild(opt);
+    }
+    select.onchange = () => action(select.value);
+    document.getElementById('controls')?.appendChild(select);
 }
