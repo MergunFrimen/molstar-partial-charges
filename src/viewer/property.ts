@@ -6,14 +6,12 @@ import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
 import { CustomPropertyDescriptor } from 'molstar/lib/mol-model/custom-property';
 import { CustomModelProperty } from 'molstar/lib/mol-model-props/common/custom-model-property';
 
-// TODO: add maxAbsoluteAtomCharge to the property
-// TODO: add maxAbsoluteResidueCharge to the property
-
 type ChargesData = {
     atomIdToCharge: Map<number, Map<number, number>>;
     residueToCharge: Map<number, Map<number, number>>;
     maxAbsoluteCharges: Map<number, number>;
-    // atomIdToEntityType: Map<number, string>;
+    maxAbsoluteAtomCharges: Map<number, number>;
+    maxAbsoluteResidueCharges: Map<number, number>;
 };
 type PartialCharges = PropertyWrapper<ChargesData | undefined>;
 
@@ -29,11 +27,23 @@ async function getData(model: Model): Promise<CustomProperty.Data<PartialCharges
     if (!isApplicable(model)) return { value: { info, data: undefined } };
 
     const atomIdToCharge = getAtomIdToCharge(model);
-    const maxAbsoluteCharges = getMaxAbsoluteCharges(atomIdToCharge);
     const residueToCharge = getResidueToCharges(model, atomIdToCharge);
-    // const atomIdToEntityType = getAtomIdToEntityType(model);
+    const maxAbsoluteAtomCharges = getMaxAbsoluteCharges(atomIdToCharge);
+    const maxAbsoluteResidueCharges = getMaxAbsoluteCharges(residueToCharge);
+    const maxAbsoluteCharges = getMaxAbsoluteChargesAll(maxAbsoluteAtomCharges, maxAbsoluteResidueCharges);
 
-    return { value: { info, data: { atomIdToCharge, residueToCharge, maxAbsoluteCharges } } };
+    return {
+        value: {
+            info,
+            data: {
+                atomIdToCharge,
+                residueToCharge,
+                maxAbsoluteAtomCharges,
+                maxAbsoluteResidueCharges,
+                maxAbsoluteCharges,
+            },
+        },
+    };
 }
 
 function getAtomIdToCharge(model: Model): ChargesData['atomIdToCharge'] {
@@ -60,11 +70,29 @@ function getAtomIdToCharge(model: Model): ChargesData['atomIdToCharge'] {
     return atomIdToCharge;
 }
 
-function getMaxAbsoluteCharges(atomIdToCharge: ChargesData['atomIdToCharge']): ChargesData['maxAbsoluteCharges'] {
-    const maxAbsoluteCharges: ChargesData['maxAbsoluteCharges'] = new Map();
+function getMaxAbsoluteChargesAll(
+    maxAbsoluteAtomCharges: ChargesData['maxAbsoluteAtomCharges'],
+    maxAbsoluteResidueCharges: ChargesData['maxAbsoluteResidueCharges']
+): ChargesData['maxAbsoluteCharges'] {
+    const maxAbsoluteCharges: Map<number, number> = new Map();
 
-    Array.from(atomIdToCharge.keys()).forEach((typeId) => {
-        const charges = Array.from(atomIdToCharge.get(typeId)?.values() || []);
+    Array.from(maxAbsoluteAtomCharges.keys()).forEach((typeId) => {
+        const maxAtomCharge = maxAbsoluteAtomCharges.get(typeId);
+        const maxResidueCharge = maxAbsoluteResidueCharges.get(typeId);
+        if (maxAtomCharge && maxResidueCharge) {
+            maxAbsoluteCharges.set(typeId, Math.max(maxAtomCharge, maxResidueCharge));
+        }
+    });
+
+    return maxAbsoluteCharges;
+}
+
+function getMaxAbsoluteCharges(idToCharge: ChargesData['atomIdToCharge']): ChargesData['maxAbsoluteAtomCharges'];
+function getMaxAbsoluteCharges(idToCharge: ChargesData['residueToCharge']): ChargesData['maxAbsoluteResidueCharges'] {
+    const maxAbsoluteCharges: Map<number, number> = new Map();
+
+    Array.from(idToCharge.keys()).forEach((typeId) => {
+        const charges = Array.from(idToCharge.get(typeId)?.values() || []);
         const min = Math.min(...charges);
         const max = Math.max(...charges);
         const bound = Math.max(Math.abs(min), max);
