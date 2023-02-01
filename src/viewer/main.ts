@@ -80,8 +80,6 @@ export default class MolstarPartialCharges {
         /**
          * Set the partial charge range to absolute.
          *
-         * TODO: add description of what this does
-         *
          * @param max Absolute maximum partial charge
          */
         absolute: async (max: number) => {
@@ -303,7 +301,6 @@ export default class MolstarPartialCharges {
         });
     }
 
-    // TODO: test if charge range works
     private async updateFocusColorTheme(color: Color['name'], params: Color['params'] = {}) {
         const props = color === 'acc2-partial-charges' ? this.partialChargesColorProps : this.elementSymbolColorProps;
         await this.plugin.state.updateBehavior(StructureFocusRepresentation, (p) => {

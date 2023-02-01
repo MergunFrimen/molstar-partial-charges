@@ -30,7 +30,6 @@ export const ACC2LociLabelProvider = PluginBehavior.create({
                     this.ctx.managers.interactivity.props.granularity === 'residue'
                         ? residueToCharge.get(typeId)?.get(id)
                         : atomIdToCharge.get(typeId)?.get(id);
-                // TODO: change label for water based on entity.type
                 const label =
                     this.ctx.managers.interactivity.props.granularity === 'residue' ? 'Residue charge' : 'Atom charge';
 

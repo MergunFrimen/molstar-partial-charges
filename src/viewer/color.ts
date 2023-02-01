@@ -27,6 +27,7 @@ export function getACC2ColorThemeParams() {
 
 function getColor(chargeValue: number, maxAbsoluteCharge: number): Color {
     const colors = {
+        default: Color(0xffffff),
         min: Color(0xff0000),
         mid: Color(0xffffff),
         max: Color(0x0000ff),
@@ -37,10 +38,8 @@ function getColor(chargeValue: number, maxAbsoluteCharge: number): Color {
         max: maxAbsoluteCharge,
     };
 
-    // TODO: is this necessary?
     if (chargeRange.min === chargeRange.max || chargeValue < chargeRange.min || chargeValue > chargeRange.max) {
-        const defaultColor = Color(0xffffff);
-        return defaultColor;
+        return colors.default;
     }
 
     if (chargeValue < chargeRange.mid) {

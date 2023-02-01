@@ -6,7 +6,8 @@ import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
 import { CustomPropertyDescriptor } from 'molstar/lib/mol-model/custom-property';
 import { CustomModelProperty } from 'molstar/lib/mol-model-props/common/custom-model-property';
 
-// TODO: add atomIdToEntityType
+// TODO: add maxAbsoluteAtomCharge to the property
+// TODO: add maxAbsoluteResidueCharge to the property
 
 type ChargesData = {
     atomIdToCharge: Map<number, Map<number, number>>;
