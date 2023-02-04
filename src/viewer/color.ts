@@ -57,14 +57,15 @@ export function ACC2ColorTheme(
         const { typeIdToAtomIdToCharge, typeIdToResidueToCharge, maxAbsoluteCharges } = data;
         const { absolute, showResidueCharge } = props;
 
-        const maxCharge = absolute ? props.max : maxAbsoluteCharges.get(typeId) || 0;
-        const charges = showResidueCharge ? typeIdToResidueToCharge.get(typeId) : typeIdToAtomIdToCharge.get(typeId);
         const id = StructureProperties.atom.id(location);
-        const chargeValue = charges?.get(id);
+        const maxCharge = absolute ? props.max : maxAbsoluteCharges.get(typeId) || 0;
+        const charge = showResidueCharge
+            ? typeIdToResidueToCharge.get(typeId)?.get(id)
+            : typeIdToAtomIdToCharge.get(typeId)?.get(id);
 
-        if (chargeValue === undefined) return Colors.MissingCharge;
+        if (charge === undefined) return Colors.MissingCharge;
 
-        return getColor(chargeValue, maxCharge);
+        return getColor(charge, maxCharge);
     }
 
     return {

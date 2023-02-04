@@ -280,8 +280,17 @@ export default class MolstarPartialCharges {
                             colorTheme = this.elementSymbolColorProps;
                         } else if (name === this.partialChargesColorProps.name) {
                             colorTheme = this.partialChargesColorProps;
-                        } else {
+                        } else if (name === 'default') {
                             colorTheme = this.defaultProps.get(representation.cell.transform.ref)?.colorTheme;
+                        } else {
+                            throw new Error('Invalid color theme');
+                        }
+
+                        // switches to residue charge for certain representations
+                        const showResidueChargeFor = ['cartoon', 'carbohydrate'];
+                        const typeName = representation.cell.transform.params?.type?.name;
+                        if (typeName && showResidueChargeFor.includes(typeName)) {
+                            params = merge({}, params, { showResidueCharge: true });
                         }
 
                         const oldProps = representation.cell.transform.params;
