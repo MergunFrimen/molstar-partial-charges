@@ -23,17 +23,17 @@ export const ACC2LociLabelProvider = PluginBehavior.create({
                 const model = loci.structure.model;
                 const data = ACC2PropertyProvider.get(model).value?.data;
                 if (data === undefined) return;
-                const { typeIdToAtomIdToCharge: atomIdToCharge, typeIdToResidueToCharge: residueToCharge } = data;
+                const { typeIdToAtomIdToCharge, typeIdToResidueToCharge } = data;
 
                 const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
-                const charge =
-                    this.ctx.managers.interactivity.props.granularity === 'residue'
-                        ? residueToCharge.get(typeId)?.get(id)
-                        : atomIdToCharge.get(typeId)?.get(id);
+                const showResidueCharge = this.ctx.managers.interactivity.props.granularity === 'residue';
+                const charge = showResidueCharge
+                    ? typeIdToResidueToCharge.get(typeId)?.get(id)
+                    : typeIdToAtomIdToCharge.get(typeId)?.get(id);
                 const label =
                     this.ctx.managers.interactivity.props.granularity === 'residue' ? 'Residue charge' : 'Atom charge';
 
-                return `<b>${label}: ${charge?.toFixed(3) || 'undefined'}`;
+                return `<strong>${label}: ${charge?.toFixed(3) || 'undefined'}</strong>`;
             },
             group: (label: string): string => label.toString().replace(/Model [0-9]+/g, 'Models'),
             priority: 0,
