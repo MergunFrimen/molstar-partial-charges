@@ -31,7 +31,7 @@ const examples = [
     'Conformer3D_CID_5761.sdf.charges.cif',
     'molecules.sdf.charges.cif',
 ];
-const default_structure_url = url_prefix + '3wpc.cif.charges.cif';
+const default_structure_url = url_prefix + 'Q9C6B8_added_H.cif';
 
 const molstar = new MolstarPartialCharges();
 
@@ -124,8 +124,6 @@ async function load(url: string) {
     let maxAbsoluteRelativeCharge = Number(molstar.charges.getRelativeCharge().toFixed(3));
     updateSliderMax(maxAbsoluteRelativeCharge);
     await updateCharge(maxAbsoluteRelativeCharge);
-
-    await molstar.type.surface();
 }
 
 function switchOffCartoonView() {
