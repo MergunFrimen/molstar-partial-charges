@@ -12,9 +12,10 @@ import merge from 'lodash.merge';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 import { Model } from 'molstar/lib/mol-model/structure';
 import { BallAndStickRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/ball-and-stick';
-import { MolecularSurfaceRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/molecular-surface';
+import { GaussianSurfaceRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/gaussian-surface';
 import { ElementSymbolColorThemeProvider } from 'molstar/lib/mol-theme/color/element-symbol';
 import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
+import { UniformSizeThemeProvider } from 'molstar/lib/mol-theme/size/uniform';
 
 /**
  * Wrapper class for the Mol* plugin.
@@ -186,16 +187,16 @@ export default class MolstarPartialCharges {
         sizeTheme: Size;
     } = {
         type: {
-            name: MolecularSurfaceRepresentationProvider.name,
+            name: GaussianSurfaceRepresentationProvider.name,
             params: {
-                ...MolecularSurfaceRepresentationProvider.defaultValues,
+                ...GaussianSurfaceRepresentationProvider.defaultValues,
             },
         },
         sizeTheme: {
             name: PhysicalSizeThemeProvider.name,
             params: {
                 ...PhysicalSizeThemeProvider.defaultValues,
-                scale: 1.7,
+                scale: 1,
             },
         },
     };
