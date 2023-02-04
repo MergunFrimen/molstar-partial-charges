@@ -68,7 +68,11 @@ export function ACC2ColorTheme(
         if (Bond.isLocation(location)) return Colors.Bond;
         if (!StructureElement.Location.is(location)) return Colors.Error;
 
-        const { atomIdToCharge, residueToCharge, maxAbsoluteCharges } = data;
+        const {
+            typeIdToAtomIdToCharge: atomIdToCharge,
+            typeIdToResidueToCharge: residueToCharge,
+            maxAbsoluteCharges,
+        } = data;
         const { absolute, showResidueCharge: isResidue } = props;
 
         const maxCharge = absolute ? props.max : maxAbsoluteCharges.get(typeId) || 0;

@@ -23,7 +23,7 @@ export const ACC2LociLabelProvider = PluginBehavior.create({
                 const model = loci.structure.model;
                 const data = ACC2PropertyProvider.get(model).value?.data;
                 if (data === undefined) return;
-                const { atomIdToCharge, residueToCharge } = data;
+                const { typeIdToAtomIdToCharge: atomIdToCharge, typeIdToResidueToCharge: residueToCharge } = data;
 
                 const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
                 const charge =
