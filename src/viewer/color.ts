@@ -8,7 +8,7 @@ import { ACC2PropertyProvider, isApplicable } from './property';
 import { CustomProperty } from 'molstar/lib/mol-model-props/common/custom-property';
 
 const Colors = {
-    Bond: Color(0x999999),
+    Bond: Color(0x969696),
     Error: Color(0x00ff00),
     MissingCharge: Color(0xffffff),
 };
@@ -25,32 +25,19 @@ export function getACC2ColorThemeParams() {
     return PD.clone(ACC2ColorThemeParams);
 }
 
-function getColor(chargeValue: number, maxAbsoluteCharge: number): Color {
+function getColor(charge: number, maxAbsoluteCharge: number): Color {
     const colors = {
+        negative: Color(0xff0000),
         default: Color(0xffffff),
-        min: Color(0xff0000),
-        mid: Color(0xffffff),
-        max: Color(0x0000ff),
-    };
-    const chargeRange = {
-        min: -maxAbsoluteCharge,
-        mid: 0,
-        max: maxAbsoluteCharge,
+        positive: Color(0x0000ff),
     };
 
-    if (chargeRange.min === chargeRange.max || chargeValue < chargeRange.min || chargeValue > chargeRange.max) {
-        return colors.default;
-    }
+    if (maxAbsoluteCharge === 0 || charge < -maxAbsoluteCharge || charge > maxAbsoluteCharge) return colors.default;
 
-    if (chargeValue < chargeRange.mid) {
-        const d = chargeRange.mid - chargeRange.min || 1;
-        const t = (chargeValue - chargeRange.min) / d;
-        return Color.interpolate(colors.min, colors.mid, t);
-    } else {
-        const d = chargeRange.max - chargeRange.mid || 1;
-        const t = (chargeValue - chargeRange.mid) / d;
-        return Color.interpolate(colors.mid, colors.max, t);
-    }
+    const t = Math.abs(charge) / maxAbsoluteCharge;
+    const endColor = charge < 0 ? colors.negative : colors.positive;
+
+    return Color.interpolate(colors.default, endColor, t);
 }
 
 export function ACC2ColorTheme(
@@ -61,26 +48,21 @@ export function ACC2ColorTheme(
     if (!model) throw new Error('No model found');
     const data = ACC2PropertyProvider.get(model).value?.data;
     const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
-    ACC2ColorThemeParams.typeId.defaultValue = typeId;
 
     function color(location: Location): Color {
-        if (data === undefined) return Colors.Error;
+        if (!data) return Colors.Error;
         if (Bond.isLocation(location)) return Colors.Bond;
         if (!StructureElement.Location.is(location)) return Colors.Error;
 
-        const {
-            typeIdToAtomIdToCharge: atomIdToCharge,
-            typeIdToResidueToCharge: residueToCharge,
-            maxAbsoluteCharges,
-        } = data;
-        const { absolute, showResidueCharge: isResidue } = props;
+        const { typeIdToAtomIdToCharge, typeIdToResidueToCharge, maxAbsoluteCharges } = data;
+        const { absolute, showResidueCharge } = props;
 
         const maxCharge = absolute ? props.max : maxAbsoluteCharges.get(typeId) || 0;
-        // console.log(maxCharge);
+        const charges = showResidueCharge ? typeIdToResidueToCharge.get(typeId) : typeIdToAtomIdToCharge.get(typeId);
         const id = StructureProperties.atom.id(location);
-        const charges = isResidue ? residueToCharge.get(typeId) : atomIdToCharge.get(typeId);
         const chargeValue = charges?.get(id);
-        if (!charges || chargeValue === undefined) return Colors.MissingCharge;
+
+        if (chargeValue === undefined) return Colors.MissingCharge;
 
         return getColor(chargeValue, maxCharge);
     }
