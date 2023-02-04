@@ -23,6 +23,7 @@ const ACC2PropertyParams = {
 type ACC2PropertyParams = typeof ACC2PropertyParams;
 
 async function getData(model: Model): Promise<CustomProperty.Data<PartialCharges>> {
+    await Promise.resolve();
     const info = PropertyWrapper.createInfo();
 
     if (!isApplicable(model)) return { value: { info, data: undefined } };
@@ -56,8 +57,6 @@ function getAtomIdToCharge(model: Model): ChargesData['typeIdToAtomIdToCharge'] 
     const atomIds = sourceData.data.frame.categories.partial_atomic_charges.getField('atom_id')?.toIntArray();
     const charges = sourceData.data.frame.categories.partial_atomic_charges.getField('charge')?.toFloatArray();
 
-    // TODO: remove
-    // if (!typeIds || !atomIds || !charges) throw new Error('Invalid data');
     if (!typeIds || !atomIds || !charges) return atomIdToCharge;
 
     for (let i = 0; i < rowCount; ++i) {
@@ -67,9 +66,6 @@ function getAtomIdToCharge(model: Model): ChargesData['typeIdToAtomIdToCharge'] 
         if (!atomIdToCharge.has(typeId)) atomIdToCharge.set(typeId, new Map());
         atomIdToCharge.get(typeId)?.set(atomId, charge);
     }
-
-    // TODO: don't know if this is necessary
-    // ACC2PropertyParams.typeId.defaultValue = Math.min(...typeIds);
 
     return atomIdToCharge;
 }
