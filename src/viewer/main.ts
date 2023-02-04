@@ -1,6 +1,6 @@
 import { createPluginUI } from 'molstar/lib/mol-plugin-ui/react18';
 import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
-import { DefaultPluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
+import { DefaultPluginUISpec, PluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
 import { StructureFocusRepresentation } from 'molstar/lib/mol-plugin/behavior/dynamic/selection/structure-focus-representation';
 import { PluginSpec } from 'molstar/lib/mol-plugin/spec';
 import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
@@ -15,7 +15,7 @@ import { BallAndStickRepresentationProvider } from 'molstar/lib/mol-repr/structu
 import { GaussianSurfaceRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/gaussian-surface';
 import { ElementSymbolColorThemeProvider } from 'molstar/lib/mol-theme/color/element-symbol';
 import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
-import { UniformSizeThemeProvider } from 'molstar/lib/mol-theme/size/uniform';
+import { PluginConfig } from 'molstar/lib/mol-plugin/config';
 
 /**
  * Wrapper class for the Mol* plugin.
@@ -23,32 +23,65 @@ import { UniformSizeThemeProvider } from 'molstar/lib/mol-theme/size/uniform';
  * This class provides a simple interface for loading structures and setting representations.
  */
 export default class MolstarPartialCharges {
-    private plugin!: PluginUIContext;
+    constructor(public plugin: PluginUIContext) {}
 
     /**
      * Initialize the plugin and attach it to the given HTML element.
      *
      * @param target ID of the HTML element to attach the plugin to
      */
-    async init(target: string) {
-        const specs: PluginSpec = {
-            ...DefaultPluginUISpec(),
+    static async create(target: string) {
+        const defaultSpecs = DefaultPluginUISpec();
+        const specs: PluginUISpec = {
+            actions: defaultSpecs.actions,
+            animations: defaultSpecs.animations,
+            behaviors: [...defaultSpecs.behaviors, PluginSpec.Behavior(ACC2LociLabelProvider)],
+            components: {
+                ...defaultSpecs.components,
+                controls: {
+                    ...defaultSpecs.components?.controls,
+                    top: undefined,
+                    bottom: undefined,
+                    left: undefined,
+                },
+                remoteState: 'none',
+            },
+            config: [
+                [PluginConfig.General.DisableAntialiasing, PluginConfig.General.DisableAntialiasing.defaultValue],
+                // TODO: can created a custom preset
+                [PluginConfig.Structure.DefaultRepresentationPreset, 'auto'],
+                [PluginConfig.Viewport.ShowAnimation, false],
+                [PluginConfig.Viewport.ShowControls, true],
+                [PluginConfig.Viewport.ShowExpand, true],
+                [PluginConfig.Viewport.ShowSelectionMode, true],
+                [PluginConfig.Viewport.ShowSettings, true],
+                [PluginConfig.Viewport.ShowTrajectoryControls, true],
+            ],
+            customParamEditors: defaultSpecs.customParamEditors,
             layout: {
                 initial: {
+                    controlsDisplay: 'reactive',
                     isExpanded: false,
                     showControls: false,
+                    regionState: {
+                        bottom: 'hidden',
+                        left: 'collapsed',
+                        right: 'full',
+                        top: 'full',
+                    },
                 },
             },
-            behaviors: [...DefaultPluginUISpec().behaviors, PluginSpec.Behavior(ACC2LociLabelProvider)],
         };
 
         const root = document.getElementById(target);
         if (!root) throw new Error(`Element with ID '${target}' not found.`);
 
-        this.plugin = await createPluginUI(root, specs);
+        const plugin = await createPluginUI(root, specs);
 
-        this.plugin.customModelProperties.register(ACC2PropertyProvider, true);
-        this.plugin.representation.structure.themes.colorThemeRegistry.add(ACC2ColorThemeProvider);
+        plugin.customModelProperties.register(ACC2PropertyProvider, true);
+        plugin.representation.structure.themes.colorThemeRegistry.add(ACC2ColorThemeProvider);
+
+        return new MolstarPartialCharges(plugin);
     }
 
     /**
