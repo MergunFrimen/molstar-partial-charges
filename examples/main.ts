@@ -8,10 +8,9 @@ import MolstarPartialCharges from '../src/viewer/main';
 let current_example = 0;
 let charge = 0;
 
-const default_structure_url =
-    'https://raw.githubusercontent.com/MergunFrimen/molstar-partial-charges/master/examples/3bj1.charges.cif';
 const url_prefix = 'http://localhost:1338/examples/output/';
 const examples = [
+    'Q9C6B8_added_H.cif',
     '100d.cif.charges.cif',
     '101m.cif.charges.cif',
     '146d.cif.charges.cif',
@@ -32,6 +31,7 @@ const examples = [
     'Conformer3D_CID_5761.sdf.charges.cif',
     'molecules.sdf.charges.cif',
 ];
+const default_structure_url = url_prefix + '3wpc.cif.charges.cif';
 
 const molstar = new MolstarPartialCharges();
 
@@ -57,39 +57,44 @@ addControl('Default\n(=Cartoon)', async () => await molstar.type.default(), 'con
 addControl('Surface', async () => await molstar.type.surface());
 addControl('Ball and stick', async () => await molstar.type.ballAndStick());
 
+// TODO: fix charges not being updated correctly
+
 addHeader('Color', 'controls-charge-header');
 addControl('Default\n(=Element symbol)', async () => await molstar.color.default());
-addControl('Absolute input', async () => {
+addControl('Set max charge', async () => {
     const input = document.getElementById('max-charge') as HTMLInputElement;
     if (!input) return;
     const value = input.value;
     const placeholder = input.placeholder;
     const defaultValue = !isNaN(Number(placeholder)) ? Number(placeholder) : 0;
     const parsed = value !== '' && !isNaN(Number(value)) ? Number(value) : defaultValue;
-    updateCharge(parsed);
-    await molstar.color.absolute(parsed);
+    updateSliderMax(parsed);
+    await updateCharge(parsed);
 });
 addInput('max-charge', '0.2');
-addControl('Absolute (+0.1)', async () => {
-    updateCharge(charge + 0.1);
-    await molstar.color.absolute(charge);
+addControl('Absolute (+0.01)', async () => {
+    await updateCharge(charge + 0.01);
 });
-addControl('Absolute (-0.1)', async () => {
-    updateCharge(charge - 0.1);
-    await molstar.color.absolute(charge);
+addControl('Absolute (-0.01)', async () => {
+    await updateCharge(charge - 0.01);
+});
+addControl('Absolute (+0.001)', async () => {
+    await updateCharge(charge + 0.001);
+});
+addControl('Absolute (-0.001)', async () => {
+    await updateCharge(charge - 0.001);
 });
 addControl('Relative', async () => {
     const relativeCharge = molstar.charges.getRelativeCharge();
-    updateCharge(relativeCharge);
-    await molstar.color.relative();
+    updateSliderMax(relativeCharge);
+    await updateCharge(relativeCharge);
 });
 // TODO: set max to max absolute charge (should dynamically update based on users input of absolute charge)
 addSlider('charge-slider', 0, 1, 0.001, async () => {
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!slider) return;
     const chg = Number(slider.value);
-    updateCharge(chg);
-    await molstar.color.absolute(charge);
+    await updateCharge(chg);
 });
 
 addHeader('Change charge set');
@@ -116,10 +121,11 @@ async function load(url: string) {
     } else {
         await molstar.type.default();
     }
-    await molstar.color.relative();
     let maxAbsoluteRelativeCharge = Number(molstar.charges.getRelativeCharge().toFixed(3));
-    updateCharge(maxAbsoluteRelativeCharge);
     updateSliderMax(maxAbsoluteRelativeCharge);
+    await updateCharge(maxAbsoluteRelativeCharge);
+
+    await molstar.type.surface();
 }
 
 function switchOffCartoonView() {
@@ -134,14 +140,16 @@ function switchOffCartoonView() {
     }
 }
 
-function updateCharge(chg: number) {
+async function updateCharge(chg: number) {
     if (isNaN(chg)) return;
-    charge = chg < 0 ? 0 : chg;
     const header = document.getElementById('controls-charge-header') as HTMLHeadingElement;
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!header || !slider) return;
+    charge = Number(chg.toFixed(3));
     header.innerText = `Charge (${charge.toFixed(3)})`;
-    slider.setAttribute('value', `${charge.toFixed(3)}`);
+    slider.value = `${charge.toFixed(3)}`;
+    await molstar.color.absolute(charge);
+    console.log(charge);
 }
 
 function addControl(label: string, action: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null, id?: string) {
