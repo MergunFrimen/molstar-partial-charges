@@ -103,6 +103,27 @@ export default class MolstarPartialCharges {
     }
 
     charges = {
+        // getTypeIds: () => {
+        //     const model = this.getModel();
+        //     if (!model) throw new Error('No model found');
+        //     const data = ACC2PropertyProvider.get(model).value?.data;
+        //     if (!data) throw new Error('No data found');
+        //     return data.typeIdToMethod.keys();
+        // },
+        getMethodNames: () => {
+            const model = this.getModel();
+            if (!model) throw new Error('No model found');
+            const data = ACC2PropertyProvider.get(model).value?.data;
+            if (!data) throw new Error('No data found');
+            return Array.from(data.typeIdToMethod.values());
+        },
+        // getMethodName: (typeId: number) => {
+        //     const model = this.getModel();
+        //     if (!model) throw new Error('No model found');
+        //     const data = ACC2PropertyProvider.get(model).value?.data;
+        //     if (!data) throw new Error('No data found');
+        //     return data.typeIdToMethod.get(typeId);
+        // },
         /**
          * Set which partial charges are used.
          *
@@ -174,27 +195,6 @@ export default class MolstarPartialCharges {
             await this.updateType(this.surfaceTypeProps.type.name);
         },
     };
-
-    // * this might come in handy later
-    // private overrideComponents = new Set([
-    //     // 'all',
-    //     // 'coarse',
-    //     // 'branched',
-    //     // 'ion',
-    //     // 'ligand',
-    //     // 'lipid',
-    //     // 'nucleic',
-    //     // 'non-standard',
-    //     // 'polymer',
-    //     // 'protein',
-    //     // 'water',
-    // ].map(v => `structure-component-static-${v}`));
-
-    // private overrideDefaults = {
-    //     color: 'element-symbol' as Color,
-    //     type: 'ball-and-stick' as Type,
-    //     size: 'physical' as Size,
-    // };
 
     private readonly defaultProps: Map<string, Representation3D> = new Map();
 
@@ -348,11 +348,11 @@ export default class MolstarPartialCharges {
         await this.plugin.state.updateBehavior(StructureFocusRepresentation, (p) => {
             p.targetParams.colorTheme = {
                 name: props.name,
-                params: { ...props.params, ...params },
+                params: merge({}, props.params, params),
             };
             p.surroundingsParams.colorTheme = {
                 name: props.name,
-                params: { ...props.params, ...params },
+                params: merge({}, props.params, params),
             };
         });
     }

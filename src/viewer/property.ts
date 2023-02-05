@@ -9,6 +9,7 @@ import { CustomModelProperty } from 'molstar/lib/mol-model-props/common/custom-m
 type TypeId = number;
 type IdToCharge = Map<number, number>;
 type ChargesData = {
+    typeIdToMethod: Map<TypeId, string>;
     typeIdToAtomIdToCharge: Map<TypeId, IdToCharge>;
     typeIdToResidueToCharge: Map<TypeId, IdToCharge>;
     maxAbsoluteCharges: IdToCharge;
@@ -28,18 +29,20 @@ async function getData(model: Model): Promise<CustomProperty.Data<PartialCharges
 
     if (!isApplicable(model)) return { value: { info, data: undefined } };
 
-    const atomIdToCharge = getAtomIdToCharge(model);
-    const residueToCharge = getResidueToCharges(model, atomIdToCharge);
-    const maxAbsoluteAtomCharges = getMaxAbsoluteCharges(atomIdToCharge);
-    const maxAbsoluteResidueCharges = getMaxAbsoluteCharges(residueToCharge);
+    const typeIdToMethod = getTypeIdToMethod(model);
+    const typeIdToAtomIdToCharge = getTypeIdToAtomIdToCharge(model);
+    const typeIdToResidueToCharge = getTypeIdToResidueIdToCharge(model, typeIdToAtomIdToCharge);
+    const maxAbsoluteAtomCharges = getMaxAbsoluteCharges(typeIdToAtomIdToCharge);
+    const maxAbsoluteResidueCharges = getMaxAbsoluteCharges(typeIdToResidueToCharge);
     const maxAbsoluteCharges = getMaxAbsoluteChargesAll(maxAbsoluteAtomCharges, maxAbsoluteResidueCharges);
 
     return {
         value: {
             info,
             data: {
-                typeIdToAtomIdToCharge: atomIdToCharge,
-                typeIdToResidueToCharge: residueToCharge,
+                typeIdToMethod,
+                typeIdToAtomIdToCharge,
+                typeIdToResidueToCharge,
                 maxAbsoluteAtomCharges,
                 maxAbsoluteResidueCharges,
                 maxAbsoluteCharges,
@@ -48,7 +51,26 @@ async function getData(model: Model): Promise<CustomProperty.Data<PartialCharges
     };
 }
 
-function getAtomIdToCharge(model: Model): ChargesData['typeIdToAtomIdToCharge'] {
+function getTypeIdToMethod(model: Model) {
+    const typeIdToMethod: ChargesData['typeIdToMethod'] = new Map();
+
+    const sourceData = model.sourceData as MmcifFormat;
+    const rowCount = sourceData.data.frame.categories.partial_atomic_charges_meta.rowCount;
+    const typeIds = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('id')?.toIntArray();
+    const methods = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('method')?.toStringArray();
+
+    if (!typeIds || !methods) return typeIdToMethod;
+
+    for (let i = 0; i < rowCount; ++i) {
+        const typeId = typeIds[i];
+        const method = methods[i];
+        typeIdToMethod.set(typeId, method);
+    }
+
+    return typeIdToMethod;
+}
+
+function getTypeIdToAtomIdToCharge(model: Model): ChargesData['typeIdToAtomIdToCharge'] {
     const atomIdToCharge: ChargesData['typeIdToAtomIdToCharge'] = new Map();
 
     const sourceData = model.sourceData as MmcifFormat;
@@ -70,7 +92,7 @@ function getAtomIdToCharge(model: Model): ChargesData['typeIdToAtomIdToCharge'] 
     return atomIdToCharge;
 }
 
-function getResidueToCharges(model: Model, typeIdToAtomIdToCharge: ChargesData['typeIdToAtomIdToCharge']) {
+function getTypeIdToResidueIdToCharge(model: Model, typeIdToAtomIdToCharge: ChargesData['typeIdToAtomIdToCharge']) {
     const { offsets } = model.atomicHierarchy.residueAtomSegments;
     const residueToCharge: ChargesData['typeIdToResidueToCharge'] = new Map();
 
