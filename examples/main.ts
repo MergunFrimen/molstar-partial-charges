@@ -1,5 +1,6 @@
 import './style.css';
 import MolstarPartialCharges from '../src/viewer/main';
+import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
 
 /**
  * Example use of the plugin wrapper
@@ -33,22 +34,21 @@ const examples = [
 ];
 const default_structure_url = url_prefix + 'Q9C6B8_added_H.cif';
 
-const molstar = new MolstarPartialCharges();
+const molstar = await MolstarPartialCharges.create('app');
 
 // for debugging purposes
 declare global {
     interface Window {
-        molstar: typeof molstar;
+        molstar: MolstarPartialCharges;
     }
 }
 window.molstar = molstar;
 
 // Initialize Mol* and load the default structure
 (async () => {
-    await molstar.init('app');
     await load(default_structure_url);
 })().then(
-    () => console.log('Molstar Partial Charges initialized'),
+    () => {},
     (e) => console.error('Molstar Partial Charges initialization failed', e)
 );
 
@@ -57,61 +57,55 @@ addControl('Default\n(=Cartoon)', async () => await molstar.type.default(), 'con
 addControl('Surface', async () => await molstar.type.surface());
 addControl('Ball and stick', async () => await molstar.type.ballAndStick());
 
-// TODO: fix charges not being updated correctly
-
-addHeader('Color', 'controls-charge-header');
-addControl('Default\n(=Element symbol)', async () => await molstar.color.default());
-addControl('Set max charge', async () => {
+const colorStates = ['Charges', 'Default'];
+let nextColor = 1;
+addHeader('', 'controls-charge-header');
+addHeader('Set charge range');
+addControl(colorStates[nextColor], switchColorThemes, 'controls-color-switch-default-charges');
+addControl('Absolute range', async () => {
     const input = document.getElementById('max-charge') as HTMLInputElement;
     if (!input) return;
     const value = input.value;
     const placeholder = input.placeholder;
     const defaultValue = !isNaN(Number(placeholder)) ? Number(placeholder) : 0;
     const parsed = value !== '' && !isNaN(Number(value)) ? Number(value) : defaultValue;
-    updateSliderMax(parsed);
-    await updateCharge(parsed);
+    await updateSliderMax(parsed);
 });
-addInput('max-charge', '0.2');
-addControl('Absolute (+0.01)', async () => {
-    await updateCharge(charge + 0.01);
-});
-addControl('Absolute (-0.01)', async () => {
-    await updateCharge(charge - 0.01);
-});
-addControl('Absolute (+0.001)', async () => {
-    await updateCharge(charge + 0.001);
-});
-addControl('Absolute (-0.001)', async () => {
-    await updateCharge(charge - 0.001);
-});
-addControl('Relative', async () => {
+addInput('max-charge', '0.0');
+// addControl('Absolute (+0.01)', async () => {
+//     await updateCharge(charge + 0.01);
+// });
+// addControl('Absolute (-0.01)', async () => {
+//     await updateCharge(charge - 0.01);
+// });
+// addControl('Absolute (+0.001)', async () => {
+//     await updateCharge(charge + 0.001);
+// });
+// addControl('Absolute (-0.001)', async () => {
+//     await updateCharge(charge - 0.001);
+// });
+addControl('Relative range', async () => {
     const relativeCharge = molstar.charges.getRelativeCharge();
-    updateSliderMax(relativeCharge);
+    await updateSliderMax(relativeCharge);
     await updateCharge(relativeCharge);
 });
-// TODO: set max to max absolute charge (should dynamically update based on users input of absolute charge)
 addSlider('charge-slider', 0, 1, 0.001, async () => {
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!slider) return;
     const chg = Number(slider.value);
     await updateCharge(chg);
+    updateButtonLabel(1);
 });
 
 addHeader('Change charge set');
-addInput('type-id', '1');
-addControl('Set typeId', async () => {
-    const input = document.getElementById('type-id') as HTMLInputElement;
-    if (!input) return;
-    const value = input.value;
-    const placeholder = input.placeholder;
-    const defaultValue = !isNaN(Number(placeholder)) ? Number(placeholder) : 1;
-    const parsed = value !== '' && !isNaN(Number(value)) ? Number(value) : defaultValue;
-    await molstar.charges.setTypeId(parsed);
-});
+addDropdown('charge-set-dropdown', [], async (value) => {});
 
 addHeader('Load');
 addControl('Next example', nextExample);
-addDropdown('examples-dropdown', examples, async (value) => await load(url_prefix + value));
+addDropdown('examples-dropdown', examples, async (value) => {
+    current_example = examples.indexOf(value);
+    await load(url_prefix + value);
+});
 
 async function load(url: string) {
     await molstar.load(url);
@@ -122,8 +116,9 @@ async function load(url: string) {
         await molstar.type.default();
     }
     let maxAbsoluteRelativeCharge = Number(molstar.charges.getRelativeCharge().toFixed(3));
-    updateSliderMax(maxAbsoluteRelativeCharge);
+    await updateSliderMax(maxAbsoluteRelativeCharge);
     await updateCharge(maxAbsoluteRelativeCharge);
+    addOptionsToDropdown('charge-set-dropdown', molstar.charges.getMethodNames());
 }
 
 function switchOffCartoonView() {
@@ -147,7 +142,6 @@ async function updateCharge(chg: number) {
     header.innerText = `Charge (${charge.toFixed(3)})`;
     slider.value = `${charge.toFixed(3)}`;
     await molstar.color.absolute(charge);
-    console.log(charge);
 }
 
 function addControl(label: string, action: ((this: GlobalEventHandlers, ev: MouseEvent) => any) | null, id?: string) {
@@ -188,14 +182,23 @@ function addSlider(id: string, min: number, max: number, step: number, action) {
     document.getElementById('controls')?.appendChild(slider);
 }
 
-function updateSliderMax(maxAbsoluteRelativeCharge: number) {
+async function updateSliderMax(max: number) {
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!slider) return;
-    slider.max = maxAbsoluteRelativeCharge.toFixed(3);
+    const old_value = Number(slider.value);
+    slider.max = max.toFixed(3);
+    if (old_value > max) {
+        await updateCharge(max);
+    } else {
+        // slider.value = old_value.toFixed(3);
+    }
 }
 
 async function nextExample() {
     current_example = (current_example + 1) % examples.length;
+    const select = document.getElementById('examples-dropdown') as HTMLSelectElement;
+    if (!select) return;
+    select.value = examples[current_example];
     await load(url_prefix + `${examples[current_example % examples.length]}`);
 }
 
@@ -210,4 +213,38 @@ function addDropdown(id: string, options: string[], action: (value: string) => a
     }
     select.onchange = () => action(select.value);
     document.getElementById('controls')?.appendChild(select);
+}
+
+function addOptionsToDropdown(id: string, options: string[]) {
+    const select = document.getElementById(id) as HTMLSelectElement;
+    if (!select) return;
+    // remove all options
+    select.options.length = 0;
+    for (const option of options) {
+        const opt = document.createElement('option');
+        opt.setAttribute('value', option);
+        opt.innerText = option;
+        select.appendChild(opt);
+    }
+}
+
+async function switchColorThemes() {
+    updateButtonLabel();
+    if (nextColor === 0) {
+        await molstar.color.default();
+    } else {
+        await molstar.color.absolute(charge);
+    }
+}
+
+function updateButtonLabel(color?: number) {
+    const btn = document.getElementById('controls-color-switch-default-charges') as HTMLButtonElement;
+    if (!btn) return;
+    if (color === undefined) {
+        btn.innerText = nextColor === 0 ? 'Default' : 'Charges';
+        nextColor = (nextColor + 1) % 2;
+    } else {
+        btn.innerText = colorStates[color];
+        nextColor = color;
+    }
 }
