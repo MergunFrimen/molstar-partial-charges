@@ -28,16 +28,18 @@ export function getACC2ColorThemeParams() {
 function getColor(charge: number, maxAbsoluteCharge: number): Color {
     const colors = {
         negative: Color(0xff0000),
-        default: Color(0xffffff),
+        zero: Color(0xffffff),
         positive: Color(0x0000ff),
     };
 
-    if (maxAbsoluteCharge === 0 || charge < -maxAbsoluteCharge || charge > maxAbsoluteCharge) return colors.default;
+    if (charge === 0) return colors.zero;
+    if (charge <= -maxAbsoluteCharge) return colors.negative;
+    if (charge >= maxAbsoluteCharge) return colors.positive;
 
-    const t = Math.abs(charge) / maxAbsoluteCharge;
+    const t = maxAbsoluteCharge !== 0 ? Math.abs(charge) / maxAbsoluteCharge : 1;
     const endColor = charge < 0 ? colors.negative : colors.positive;
 
-    return Color.interpolate(colors.default, endColor, t);
+    return Color.interpolate(colors.zero, endColor, t);
 }
 
 export function ACC2ColorTheme(
