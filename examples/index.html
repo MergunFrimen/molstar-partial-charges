@@ -44,17 +44,17 @@
                 charge = 0;
                 const relativeCharge = molstar.charges.getRelativeCharge();
                 updateCharge(relativeCharge);
-                await molstar.charges.relative();
+                await molstar.color.relative();
             });
             addControl('Absolute (+0.1)', async () => {
                 charge += 0.1;
                 updateCharge(charge);
-                await molstar.charges.absolute(charge);
+                await molstar.color.absolute(charge);
             });
             addControl('Absolute (-0.1)', async () => {
                 charge -= 0.1;
                 updateCharge(charge);
-                await molstar.charges.absolute(charge);
+                await molstar.color.absolute(charge);
             });
 
             addHeader('Load');
@@ -65,7 +65,7 @@
                 await molstar.load(url);
                 const cartoonOff = switchOffCartoonView();
                 if (cartoonOff) await molstar.type.ballAndStick();
-                else await molstar.type.default();
+                else await molstar.type.ballAndStick();
                 await molstar.color.relative();
                 updateCharge(molstar.charges.getRelativeCharge());
             }

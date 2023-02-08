@@ -9,9 +9,8 @@ import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
 let current_example = 0;
 let charge = 0;
 
-const url_prefix = 'http://localhost:1338/examples/output/';
+const url_prefix = 'http://127.0.0.1:1338/test/output/';
 const examples = [
-    'Q9C6B8_added_H.cif',
     '100d.cif.charges.cif',
     '101m.cif.charges.cif',
     '146d.cif.charges.cif',
@@ -19,7 +18,6 @@ const examples = [
     '1aga.cif.charges.cif',
     '1c0q.cif.charges.cif',
     '1cp8.cif.charges.cif',
-    '2_4_dinitrophenol.sdf.charges.cif',
     '2p7d.cif.charges.cif',
     '3c1p.cif.charges.cif',
     '3wpc.cif.charges.cif',
