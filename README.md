@@ -1,6 +1,7 @@
 # Molstar Partial Charges
 
-![npm](https://img.shields.io/npm/v/molstar-partial-charges?color=pink&style=flat-square)![NPM](https://img.shields.io/npm/l/molstar-partial-charges?color=pink&style=flat-square)
+![npm](https://img.shields.io/npm/v/molstar-partial-charges?color=pink&style=flat-square)
+![NPM](https://img.shields.io/npm/l/molstar-partial-charges?color=pink&style=flat-square)
 
 [Mol\* (/'mol-star/)](https://github.com/molstar/molstar) plugin for viewing partial atomic charges.
 
