@@ -4,3 +4,4 @@ dist/*
 node_modules/*
 examples/*
 jest.config.js
+vite.config.ts

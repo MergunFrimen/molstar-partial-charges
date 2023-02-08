@@ -18,11 +18,11 @@
             const non_polymer_structure =
                 'https://raw.githubusercontent.com/MergunFrimen/molstar-partial-charges/master/examples/2_4_dinitrophenol.charges.cif';
 
-            const molstar = new MolstarPartialCharges();
+            let molstar;
 
             (async () => {
                 // Initialize Mol* and load the default structure
-                await molstar.init('app');
+                molstar = await MolstarPartialCharges.create('app');
                 await load(polymer_structure);
             })().then(
                 () => console.log('Mol* ACC2 Wrapper initialized'),
@@ -31,7 +31,7 @@
 
             addHeader('Color');
             addControl('Default\n(=Element symbol)', async () => await molstar.color.default());
-            addControl('Partial Charges', async () => await molstar.color.partialCharges());
+            addControl('Partial Charges', async () => await molstar.color.relative());
 
             addHeader('View');
             addControl('Default\n(=Cartoon)', async () => await molstar.type.default(), 'controls-view-default');
@@ -65,7 +65,7 @@
                 const cartoonOff = switchOffCartoonView();
                 if (cartoonOff) await molstar.type.ballAndStick();
                 else await molstar.type.default();
-                await molstar.color.partialCharges();
+                await molstar.color.relative();
                 updateCharge(molstar.charges.getRelativeCharge());
             }
 

@@ -1,6 +1,7 @@
 import { OrderedSet } from 'molstar/lib/mol-data/int';
 import { Loci } from 'molstar/lib/mol-model/loci';
 import { StructureElement } from 'molstar/lib/mol-model/structure';
+import { LociLabel } from 'molstar/lib/mol-plugin-state/manager/loci-label';
 import { PluginBehavior } from 'molstar/lib/mol-plugin/behavior';
 import { PluginContext } from 'molstar/lib/mol-plugin/context';
 import { ACC2PropertyProvider } from './property';
@@ -35,7 +36,7 @@ export const ACC2LociLabelProvider = PluginBehavior.create({
 
                 return `<strong>${label}: ${charge?.toFixed(3) || 'undefined'}</strong>`;
             },
-            group: (label: string): string => label.toString().replace(/Model [0-9]+/g, 'Models'),
+            group: (label: LociLabel): string => label.toString().replace(/Model [0-9]+/g, 'Models'),
             priority: 0,
         };
         register() {
