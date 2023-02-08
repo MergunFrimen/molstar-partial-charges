@@ -17,13 +17,13 @@ export default defineConfig({
             formats: ['umd', 'es'],
             fileName: (format) => `index.${format}.js`,
         },
-        modulePreload: {
-            polyfill: false,
-        },
-        watch: {
-            exclude: ['node_modules/**', 'dist/**'],
-            buildDelay: 1000,
-        },
+        // modulePreload: {
+        //     polyfill: false,
+        // },
+        // watch: {
+        //     exclude: ['node_modules/**', 'dist/**'],
+        //     buildDelay: 1000,
+        // },
     },
     plugins: [dts()],
 });
