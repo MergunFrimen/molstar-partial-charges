@@ -29,7 +29,7 @@ In order for the plugin to work you will need to specify these mmcif categories:
     partial_atomic_charges.atom_id         # atom id
     partial_atomic_charges.charge          # partial atomic charge
 
-For examples see [here](https://github.com/MergunFrimen/molstar-partial-charges/blob/f38f38d73d8deb0cf8f3c7213d6301f603031617/examples/3bj1.charges.cif) and [here](https://github.com/MergunFrimen/molstar-partial-charges/blob/f38f38d73d8deb0cf8f3c7213d6301f603031617/examples/2_4_dinitrophenol.charges.cif).
+For examples see [here](https://github.com/MergunFrimen/molstar-partial-charges/blob/f38f38d73d8deb0cf8f3c7213d6301f603031617/examples/2_4_dinitrophenol.charges.cif#L59-L68) and [here](https://github.com/MergunFrimen/molstar-partial-charges/blob/f38f38d73d8deb0cf8f3c7213d6301f603031617/examples/3bj1.charges.cif#L7265-L7274).
 
 ## License
 
