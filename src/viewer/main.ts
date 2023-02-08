@@ -288,9 +288,18 @@ export default class MolstarPartialCharges {
                         }
 
                         const oldProps = representation.cell.transform.params;
+
+                        // switches to residue charge for certain representations
+                        const showResidueChargeFor = ['cartoon', 'carbohydrate'];
+                        const typeName = type?.name;
+                        const showResidueCharge = typeName && showResidueChargeFor.includes(typeName);
+                        let colorTheme = oldProps?.colorTheme;
+                        colorTheme = merge({}, colorTheme, { params: { showResidueCharge } });
+
                         const mergedProps = merge({}, oldProps, {
                             type,
                             sizeTheme,
+                            colorTheme,
                         });
                         update.to(representation.cell).update(mergedProps);
                     }
@@ -322,9 +331,8 @@ export default class MolstarPartialCharges {
                         // switches to residue charge for certain representations
                         const showResidueChargeFor = ['cartoon', 'carbohydrate'];
                         const typeName = representation.cell.transform.params?.type?.name;
-                        if (typeName && showResidueChargeFor.includes(typeName)) {
-                            params = merge({}, params, { showResidueCharge: true });
-                        }
+                        const showResidueCharge = typeName && showResidueChargeFor.includes(typeName);
+                        params = merge({}, params, { showResidueCharge });
 
                         const oldProps = representation.cell.transform.params;
                         const mergedProps = merge({}, oldProps, { colorTheme }, { colorTheme: { params } });
