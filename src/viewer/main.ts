@@ -358,16 +358,11 @@ export default class MolstarPartialCharges {
     }
 
     private async updateFocusColorTheme(color: Color['name'], params: Color['params'] = {}) {
-        const props = color === 'acc2-partial-charges' ? this.partialChargesColorProps : this.elementSymbolColorProps;
+        let props = color === 'acc2-partial-charges' ? this.partialChargesColorProps : this.elementSymbolColorProps;
+        props = merge({}, props, { params: { ...params, showResidueCharge: false } });
         await this.plugin.state.updateBehavior(StructureFocusRepresentation, (p) => {
-            p.targetParams.colorTheme = {
-                name: props.name,
-                params: merge({}, props.params, params),
-            };
-            p.surroundingsParams.colorTheme = {
-                name: props.name,
-                params: merge({}, props.params, params),
-            };
+            p.targetParams.colorTheme = props;
+            p.surroundingsParams.colorTheme = props;
         });
     }
 
