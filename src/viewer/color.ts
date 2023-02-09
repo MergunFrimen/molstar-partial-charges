@@ -8,7 +8,7 @@ import { ACC2PropertyProvider, isApplicable } from './property';
 import { CustomProperty } from 'molstar/lib/mol-model-props/common/custom-property';
 
 const Colors = {
-    Bond: Color(0x969696),
+    Bond: Color(0xffffff),
     Error: Color(0x00ff00),
     MissingCharge: Color(0xffffff),
 };
