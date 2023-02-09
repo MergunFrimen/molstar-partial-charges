@@ -245,6 +245,12 @@ export default class MolstarPartialCharges {
             ...ElementSymbolColorThemeProvider.defaultValues,
         },
     };
+    private readonly physicalSizeProps: Size = {
+        name: PhysicalSizeThemeProvider.name,
+        params: {
+            ...PhysicalSizeThemeProvider.defaultValues,
+        },
+    };
 
     private async setInitialRepresentationState() {
         this.defaultProps.clear();
@@ -254,11 +260,11 @@ export default class MolstarPartialCharges {
                     for (const representation of component.representations) {
                         const params = representation.cell.transform.params;
                         if (!params) continue;
-                        const { colorTheme, type, sizeTheme } = params;
+                        const { type } = params;
                         this.defaultProps.set(representation.cell.transform.ref, {
-                            colorTheme: colorTheme as Color,
                             type: type as Type,
-                            sizeTheme: sizeTheme as Size,
+                            colorTheme: this.elementSymbolColorProps,
+                            sizeTheme: this.physicalSizeProps,
                         });
                     }
                 }
