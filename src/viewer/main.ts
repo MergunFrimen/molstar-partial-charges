@@ -16,6 +16,7 @@ import { GaussianSurfaceRepresentationProvider } from 'molstar/lib/mol-repr/stru
 import { ElementSymbolColorThemeProvider } from 'molstar/lib/mol-theme/color/element-symbol';
 import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
 import { PluginConfig } from 'molstar/lib/mol-plugin/config';
+import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
 
 /**
  * Wrapper class for the Mol* plugin.
@@ -89,11 +90,11 @@ export default class MolstarPartialCharges {
      *
      * @param url URL of the structure to load
      */
-    async load(url: string) {
+    async load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
         await this.plugin.clear();
 
         const data = await this.plugin.builders.data.download({ url }, { state: { isGhost: true } });
-        const trajectory = await this.plugin.builders.structure.parseTrajectory(data, 'mmcif');
+        const trajectory = await this.plugin.builders.structure.parseTrajectory(data, format);
         await this.plugin.builders.structure.hierarchy.applyPreset(trajectory, 'default', {
             showUnitcell: false,
             representationPreset: 'auto',
@@ -193,6 +194,11 @@ export default class MolstarPartialCharges {
         },
         surface: async () => {
             await this.updateType(this.surfaceTypeProps.type.name);
+        },
+    };
+    visual = {
+        focus: async () => {
+            // TODO: Implement
         },
     };
 

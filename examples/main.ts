@@ -1,6 +1,13 @@
 import './style.css';
 import MolstarPartialCharges from '../src/viewer/main';
 import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
+import { Script } from 'molstar/lib/mol-script/script';
+import { QueryContext, StructureProperties, StructureSelection } from 'molstar/lib/mol-model/structure';
+import { Loci } from 'molstar/lib/mol-model/loci';
+import { OrderedSet } from 'molstar/lib/mol-data/int/ordered-set';
+import { PluginStateObject } from 'molstar/lib/mol-plugin-state/objects';
+import { MolScriptBuilder as MS } from 'molstar/lib/mol-script/language/builder';
+import { compile } from 'molstar/lib/mol-script/runtime/query/compiler';
 
 /**
  * Example use of the plugin wrapper
@@ -11,6 +18,9 @@ let charge = 0;
 
 const url_prefix = 'http://127.0.0.1:1338/test/output/';
 const examples = [
+    'P34712.cif',
+    'Q55GB6.pdb',
+    '121p.pdb',
     '100d.cif.charges.cif',
     '101m.cif.charges.cif',
     '146d.cif.charges.cif',
@@ -30,7 +40,7 @@ const examples = [
     'Conformer3D_CID_5761.sdf.charges.cif',
     'molecules.sdf.charges.cif',
 ];
-const default_structure_url = url_prefix + 'Q9C6B8_added_H.cif';
+const default_structure_url = url_prefix + 'P34712.cif';
 
 const molstar = await MolstarPartialCharges.create('app');
 
@@ -44,6 +54,31 @@ window.molstar = molstar;
 
 // Initialize Mol* and load the default structure
 (async () => {
+    // // load pdf structure
+    // await molstar.load(url_prefix + 'Q55GB6.pdb', 'pdb');
+    // await molstar.type.ballAndStick();
+    // await molstar.color.default();
+
+    // // try to focus on problematic atom
+    // const data = molstar.plugin.managers.structure.hierarchy.current.structures[0].components[0].cell.obj?.data;
+    // if (!data) return;
+
+    // // TODO: this works only for some atom ids
+    // const atom_id = 2;
+    // const sel = Script.getStructureSelection(
+    //     (Q) =>
+    //         Q.struct.generator.atomGroups({
+    //             'atom-test': Q.core.rel.eq([Q.struct.atomProperty.core.atomKey(), atom_id]),
+    //         }),
+    //     data
+    // );
+    // const loci = StructureSelection.toLociWithSourceUnits(sel);
+
+    // console.log(Loci.isEmpty(loci));
+    // molstar.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci });
+    // molstar.plugin.managers.interactivity.lociSelects.selectOnly({ loci });
+    // molstar.plugin.managers.camera.focusLoci(loci);
+    // molstar.plugin.managers.structure.focus.setFromLoci(loci);
     await load(default_structure_url);
 })().then(
     () => {},
@@ -102,10 +137,10 @@ addHeader('Load');
 addControl('Next example', nextExample);
 addDropdown('examples-dropdown', examples, async (value) => {
     current_example = examples.indexOf(value);
-    await load(url_prefix + value);
+    await load(url_prefix + value, 'pdb');
 });
 
-async function load(url: string) {
+async function load(url: string, format: string = 'cif') {
     await molstar.load(url);
     const cartoonOff = switchOffCartoonView();
     if (cartoonOff) {
