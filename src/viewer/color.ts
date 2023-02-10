@@ -1,4 +1,4 @@
-import { Bond, StructureElement, StructureProperties } from 'molstar/lib/mol-model/structure';
+import { Bond, StructureElement, StructureProperties, Unit } from 'molstar/lib/mol-model/structure';
 import { ColorTheme } from 'molstar/lib/mol-theme/color';
 import { ThemeDataContext } from 'molstar/lib/mol-theme/theme';
 import { Color } from 'molstar/lib/mol-util/color';
@@ -53,13 +53,24 @@ export function ACC2ColorTheme(
 
     function color(location: Location): Color {
         if (!data) return Colors.Error;
-        if (Bond.isLocation(location)) return Colors.Bond;
-        if (!StructureElement.Location.is(location)) return Colors.Error;
 
         const { typeIdToAtomIdToCharge, typeIdToResidueToCharge, maxAbsoluteCharges } = data;
         const { absolute, showResidueCharge } = props;
 
-        const id = StructureProperties.atom.id(location);
+        let id = -1;
+        if (StructureElement.Location.is(location)) {
+            if (Unit.isAtomic(location.unit)) {
+                id = StructureProperties.atom.id(location);
+            }
+        } else if (Bond.isLocation(location)) {
+            if (Unit.isAtomic(location.aUnit)) {
+                const l = StructureElement.Location.create(ctx.structure?.root);
+                l.unit = location.aUnit;
+                l.element = location.aUnit.elements[location.aIndex];
+                id = StructureProperties.atom.id(l);
+            }
+        }
+
         const maxCharge = absolute ? props.max : maxAbsoluteCharges.get(typeId) || 0;
         const charge = showResidueCharge
             ? typeIdToResidueToCharge.get(typeId)?.get(id)
