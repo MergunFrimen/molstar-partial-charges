@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0" />
-        <title>Mol* ACC2 Wrapper</title>
+        <title>Molstar Partial Charges Wrapper</title>
         <link href="../dist/style.css" rel="stylesheet" />
         <link href="./style.css" rel="stylesheet" />
     </head>
@@ -26,8 +26,8 @@
                 molstar = await MolstarPartialCharges.create('app');
                 await load(polymer_structure);
             })().then(
-                () => console.log('Mol* ACC2 Wrapper initialized'),
-                (e) => console.error('Mol* ACC2 Wrapper initialization failed', e)
+                () => console.log('Molstar Partial Charges Wrapper initialized'),
+                (e) => console.error('Molstar Partial Charges Wrapper initialization failed', e)
             );
 
             addHeader('Color');

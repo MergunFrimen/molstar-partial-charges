@@ -3,12 +3,15 @@ import { Loci } from 'molstar/lib/mol-model/loci';
 import { StructureElement } from 'molstar/lib/mol-model/structure';
 import { PluginBehavior } from 'molstar/lib/mol-plugin/behavior';
 import { PluginContext } from 'molstar/lib/mol-plugin/context';
-import { ACC2PropertyProvider } from './property';
+import { PartialChargesPropertyProvider } from './property';
 
-export const ACC2LociLabelProvider = PluginBehavior.create({
-    name: 'acc2-loci-label-provider',
+export const PartialChargesLociLabelProvider = PluginBehavior.create({
+    name: 'sb-ncbr-loci-label-provider',
     category: 'interaction',
-    display: { name: 'Provide ACC2 Partial Charges Loci Label' },
+    display: {
+        name: 'SB NCBR Partial Charges Labels',
+        description: 'Provide partial charges loci labels.',
+    },
     ctor: class implements PluginBehavior<undefined> {
         constructor(protected ctx: PluginContext) {}
         private provider = {
@@ -21,11 +24,11 @@ export const ACC2LociLabelProvider = PluginBehavior.create({
                 const id = elements[index] + 1;
 
                 const model = loci.structure.model;
-                const data = ACC2PropertyProvider.get(model).value?.data;
+                const data = PartialChargesPropertyProvider.get(model).value?.data;
                 if (data === undefined) return;
                 const { typeIdToAtomIdToCharge, typeIdToResidueToCharge } = data;
 
-                const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
+                const typeId = PartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
                 const showResidueCharge = this.ctx.managers.interactivity.props.granularity === 'residue';
                 const charge = showResidueCharge
                     ? typeIdToResidueToCharge.get(typeId)?.get(id)

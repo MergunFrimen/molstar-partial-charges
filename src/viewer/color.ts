@@ -4,7 +4,7 @@ import { ThemeDataContext } from 'molstar/lib/mol-theme/theme';
 import { Color } from 'molstar/lib/mol-util/color';
 import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
 import { Location } from 'molstar/lib/mol-model/location';
-import { ACC2PropertyProvider, isApplicable } from './property';
+import { PartialChargesPropertyProvider, isApplicable } from './property';
 import { CustomProperty } from 'molstar/lib/mol-model-props/common/custom-property';
 
 const Colors = {
@@ -13,16 +13,16 @@ const Colors = {
     MissingCharge: Color(0xffffff),
 };
 
-export const ACC2ColorThemeParams = {
+export const PartialChargesThemeParams = {
     max: PD.Numeric(0, { min: 0 }),
     typeId: PD.Numeric(-1, undefined, { isHidden: true }),
     absolute: PD.Boolean(false, { isHidden: false }),
     showResidueCharge: PD.Boolean(false, { isHidden: false }),
 };
-export type ACC2ColorThemeParams = typeof ACC2ColorThemeParams;
+export type PartialChargesThemeParams = typeof PartialChargesThemeParams;
 
-export function getACC2ColorThemeParams() {
-    return PD.clone(ACC2ColorThemeParams);
+export function getPartialChargesThemeParams() {
+    return PD.clone(PartialChargesThemeParams);
 }
 
 function getColor(charge: number, maxAbsoluteCharge: number): Color {
@@ -42,14 +42,14 @@ function getColor(charge: number, maxAbsoluteCharge: number): Color {
     return Color.interpolate(colors.zero, endColor, t);
 }
 
-export function ACC2ColorTheme(
+export function PartialChargesColorTheme(
     ctx: ThemeDataContext,
-    props: PD.Values<ACC2ColorThemeParams>
-): ColorTheme<ACC2ColorThemeParams> {
+    props: PD.Values<PartialChargesThemeParams>
+): ColorTheme<PartialChargesThemeParams> {
     const model = ctx.structure?.models[0];
     if (!model) throw new Error('No model found');
-    const data = ACC2PropertyProvider.get(model).value?.data;
-    const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
+    const data = PartialChargesPropertyProvider.get(model).value?.data;
+    const typeId = PartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
 
     function color(location: Location): Color {
         if (!data) return Colors.Error;
@@ -82,28 +82,31 @@ export function ACC2ColorTheme(
     }
 
     return {
-        factory: ACC2ColorTheme,
+        factory: PartialChargesColorTheme,
         granularity: 'group',
         color,
         props,
-        description: 'Assign colors to atoms and residues based on partial charges.',
+        description: 'Assign colors to atoms and residues based on their partial charge.',
     };
 }
 
-export const ACC2ColorThemeProvider: ColorTheme.Provider<ACC2ColorThemeParams, 'acc2-partial-charges'> = {
-    label: 'ACC2 Partial Charges',
-    name: 'acc2-partial-charges',
+export const PartialChargesColorThemeProvider: ColorTheme.Provider<
+    PartialChargesThemeParams,
+    'sb-ncbr-partial-charges'
+> = {
+    label: 'SB NCBR Partial Charges',
+    name: 'sb-ncbr-partial-charges',
     category: ColorTheme.Category.Atom,
-    factory: ACC2ColorTheme,
-    getParams: getACC2ColorThemeParams,
-    defaultValues: PD.getDefaultValues(ACC2ColorThemeParams),
+    factory: PartialChargesColorTheme,
+    getParams: getPartialChargesThemeParams,
+    defaultValues: PD.getDefaultValues(PartialChargesThemeParams),
     isApplicable: (ctx: ThemeDataContext) =>
         !!ctx.structure && ctx.structure.models.some((model) => isApplicable(model)),
     ensureCustomProperties: {
         attach: (ctx: CustomProperty.Context, data: ThemeDataContext) =>
             data.structure
-                ? ACC2PropertyProvider.attach(ctx, data.structure.models[0], void 0, true)
+                ? PartialChargesPropertyProvider.attach(ctx, data.structure.models[0], void 0, true)
                 : Promise.resolve(),
-        detach: (data) => data.structure && ACC2PropertyProvider.ref(data.structure.models[0], false),
+        detach: (data) => data.structure && PartialChargesPropertyProvider.ref(data.structure.models[0], false),
     },
 };

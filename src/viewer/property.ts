@@ -18,10 +18,10 @@ type ChargesData = {
 };
 type PartialCharges = PropertyWrapper<ChargesData | undefined>;
 
-const ACC2PropertyParams = {
+const PartialChargesPropertyParams = {
     typeId: PD.Numeric(1),
 };
-type ACC2PropertyParams = typeof ACC2PropertyParams;
+type PartialChargesPropertyParams = typeof PartialChargesPropertyParams;
 
 async function getData(model: Model): Promise<CustomProperty.Data<PartialCharges>> {
     await Promise.resolve();
@@ -147,7 +147,7 @@ function getMaxAbsoluteChargesAll(
     return maxAbsoluteCharges;
 }
 
-function hasACC2Categories(model: Model): boolean {
+function hasPartialChargesCategories(model: Model): boolean {
     if (!MmcifFormat.is(model.sourceData)) return false;
     const names = model.sourceData.data.frame.categoryNames;
     return (
@@ -158,18 +158,20 @@ function hasACC2Categories(model: Model): boolean {
 }
 
 export function isApplicable(model?: Model): boolean {
-    return !!model && model.sourceData.kind === 'mmCIF' && hasACC2Categories(model);
+    return !!model && model.sourceData.kind === 'mmCIF' && hasPartialChargesCategories(model);
 }
 
-export const ACC2PropertyProvider: CustomModelProperty.Provider<ACC2PropertyParams, PartialCharges> =
-    CustomModelProperty.createProvider({
-        label: 'ACC2 Property Provider',
-        descriptor: CustomPropertyDescriptor({
-            name: 'acc2-property-provider',
-        }),
-        type: 'static',
-        defaultParams: ACC2PropertyParams,
-        getParams: () => ACC2PropertyParams,
-        isApplicable: (model: Model) => isApplicable(model),
-        obtain: (_ctx: CustomProperty.Context, model: Model) => getData(model),
-    });
+export const PartialChargesPropertyProvider: CustomModelProperty.Provider<
+    PartialChargesPropertyParams,
+    PartialCharges
+> = CustomModelProperty.createProvider({
+    label: 'SB NCBR Partial Charges Property Provider',
+    descriptor: CustomPropertyDescriptor({
+        name: 'sb-ncbr-property-provider',
+    }),
+    type: 'static',
+    defaultParams: PartialChargesPropertyParams,
+    getParams: () => PartialChargesPropertyParams,
+    isApplicable: (model: Model) => isApplicable(model),
+    obtain: (_ctx: CustomProperty.Context, model: Model) => getData(model),
+});

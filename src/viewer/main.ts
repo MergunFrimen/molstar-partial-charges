@@ -4,12 +4,6 @@ import { DefaultPluginUISpec, PluginUISpec } from 'molstar/lib/mol-plugin-ui/spe
 import { StructureFocusRepresentation } from 'molstar/lib/mol-plugin/behavior/dynamic/selection/structure-focus-representation';
 import { PluginSpec } from 'molstar/lib/mol-plugin/spec';
 import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
-import { ACC2ColorThemeProvider } from './color';
-import { ACC2LociLabelProvider } from './label';
-import { ACC2PropertyProvider } from './property';
-import { Color, Representation3D, Size, Type } from './types';
-import merge from 'lodash.merge';
-import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 import { Model } from 'molstar/lib/mol-model/structure';
 import { BallAndStickRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/ball-and-stick';
 import { GaussianSurfaceRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/gaussian-surface';
@@ -17,6 +11,12 @@ import { ElementSymbolColorThemeProvider } from 'molstar/lib/mol-theme/color/ele
 import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
 import { PluginConfig } from 'molstar/lib/mol-plugin/config';
 import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
+import { PartialChargesColorThemeProvider } from './color';
+import { PartialChargesLociLabelProvider } from './label';
+import { PartialChargesPropertyProvider } from './property';
+import { Color, Representation3D, Size, Type } from './types';
+import merge from 'lodash.merge';
+import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 
 /**
  * Wrapper class for the Mol* plugin.
@@ -36,7 +36,7 @@ export default class MolstarPartialCharges {
         const specs: PluginUISpec = {
             actions: defaultSpecs.actions,
             animations: defaultSpecs.animations,
-            behaviors: [...defaultSpecs.behaviors, PluginSpec.Behavior(ACC2LociLabelProvider)],
+            behaviors: [...defaultSpecs.behaviors, PluginSpec.Behavior(PartialChargesLociLabelProvider)],
             components: {
                 ...defaultSpecs.components,
                 controls: {
@@ -79,8 +79,8 @@ export default class MolstarPartialCharges {
 
         const plugin = await createPluginUI(root, specs);
 
-        plugin.customModelProperties.register(ACC2PropertyProvider, true);
-        plugin.representation.structure.themes.colorThemeRegistry.add(ACC2ColorThemeProvider);
+        plugin.customModelProperties.register(PartialChargesPropertyProvider, true);
+        plugin.representation.structure.themes.colorThemeRegistry.add(PartialChargesColorThemeProvider);
 
         return new MolstarPartialCharges(plugin);
     }
@@ -107,21 +107,21 @@ export default class MolstarPartialCharges {
         // getTypeIds: () => {
         //     const model = this.getModel();
         //     if (!model) throw new Error('No model found');
-        //     const data = ACC2PropertyProvider.get(model).value?.data;
+        //     const data = PartialChargesPropertyProvider.get(model).value?.data;
         //     if (!data) throw new Error('No data found');
         //     return data.typeIdToMethod.keys();
         // },
         getMethodNames: () => {
             const model = this.getModel();
             if (!model) throw new Error('No model found');
-            const data = ACC2PropertyProvider.get(model).value?.data;
+            const data = PartialChargesPropertyProvider.get(model).value?.data;
             if (!data) throw new Error('No data found');
             return Array.from(data.typeIdToMethod.values());
         },
         // getMethodName: (typeId: number) => {
         //     const model = this.getModel();
         //     if (!model) throw new Error('No model found');
-        //     const data = ACC2PropertyProvider.get(model).value?.data;
+        //     const data = PartialChargesPropertyProvider.get(model).value?.data;
         //     if (!data) throw new Error('No data found');
         //     return data.typeIdToMethod.get(typeId);
         // },
@@ -136,8 +136,8 @@ export default class MolstarPartialCharges {
         getRelativeCharge: () => {
             const model = this.getModel();
             if (!model) throw new Error('No model loaded.');
-            const typeId = ACC2PropertyProvider.getParams(model).typeId.defaultValue;
-            const charge = ACC2PropertyProvider.get(model).value?.data?.maxAbsoluteCharges.get(typeId);
+            const typeId = PartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
+            const charge = PartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteCharges.get(typeId);
             if (!charge) throw new Error('No charge found.');
             return charge;
         },
@@ -240,7 +240,7 @@ export default class MolstarPartialCharges {
         },
     };
     private readonly partialChargesColorProps: Color = {
-        name: ACC2ColorThemeProvider.name,
+        name: PartialChargesColorThemeProvider.name,
         params: {
             // purposefully not using default values
         },
@@ -364,7 +364,10 @@ export default class MolstarPartialCharges {
     }
 
     private async updateFocusColorTheme(color: Color['name'], params: Color['params'] = {}) {
-        let props = color === 'acc2-partial-charges' ? this.partialChargesColorProps : this.elementSymbolColorProps;
+        let props =
+            color === PartialChargesColorThemeProvider.name
+                ? this.partialChargesColorProps
+                : this.elementSymbolColorProps;
         props = merge({}, props, { params: { ...params, showResidueCharge: false } });
         await this.plugin.state.updateBehavior(StructureFocusRepresentation, (p) => {
             p.targetParams.colorTheme = props;
@@ -375,8 +378,8 @@ export default class MolstarPartialCharges {
     private async updateModelPropertyData(typeId: number) {
         const model = this.getModel();
         if (!model || !this.isTypeIdValid(model, typeId)) return;
-        ACC2PropertyProvider.set(model, { typeId });
-        await this.updateColor('acc2-partial-charges', { typeId });
+        PartialChargesPropertyProvider.set(model, { typeId });
+        await this.updateColor(PartialChargesColorThemeProvider.name, { typeId });
     }
 
     private getModel() {

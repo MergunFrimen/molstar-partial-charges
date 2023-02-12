@@ -13,7 +13,7 @@ export type Type = {
     params: StructureRepresentationRegistry.BuiltInParams<StructureRepresentationRegistry.BuiltIn>;
 };
 export type Color = {
-    name: ColorTheme.BuiltIn | 'acc2-partial-charges' | 'default';
+    name: ColorTheme.BuiltIn | 'sb-ncbr-partial-charges' | 'default';
     params: ColorTheme.BuiltInParams<ColorTheme.BuiltIn>;
 };
 export type Size = {
