@@ -27,7 +27,7 @@ export default class MolstarPartialCharges {
     constructor(public plugin: PluginUIContext) {}
 
     /**
-     * Initialize the plugin and attach it to the given HTML element.
+     * Create the plugin and attach it to the given HTML element.
      *
      * @param target ID of the HTML element to attach the plugin to
      */
@@ -89,6 +89,7 @@ export default class MolstarPartialCharges {
      * Load a structure from a URL and set the initial representation state.
      *
      * @param url URL of the structure to load
+     * @param format Format of the structure to load
      */
     async load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
         await this.plugin.clear();
@@ -128,7 +129,7 @@ export default class MolstarPartialCharges {
         /**
          * Set which partial charges are used.
          *
-         * @param typeId ID of the partial charge type
+         * @param typeId Value of the partial charge type mmCIF tag
          */
         setTypeId: async (typeId: number) => {
             await this.updateModelPropertyData(typeId);
@@ -145,7 +146,7 @@ export default class MolstarPartialCharges {
 
     color = {
         /**
-         * Set the color theme to the default color theme (whatever Molstar picks).
+         * Set the color theme to the default color theme (whatever Molstar picked on load).
          */
         default: async () => {
             await this.updateColor('default');
@@ -171,20 +172,16 @@ export default class MolstarPartialCharges {
         },
     };
 
-    /**
-     * Object for updating the representation type.
-     */
     type = {
         /**
-         * @returns Whether the loaded structure can be viewed with a representation type
-         * other than Ball and stick or Surface..
+         * @returns Whether the loaded structure can be viewed with the cartoon or carbohydrate representation.
          */
         isDefaultApplicable: () => {
             const other = ['cartoon', 'carbohydrate'];
             return Array.from(this.defaultProps.values()).some(({ type }) => other.includes(type.name));
         },
         /**
-         * Set the representation type to the default type (whatever Molstar picks).
+         * Set the representation type to the default type (whatever Molstar picked on load).
          */
         default: async () => {
             await this.updateType('default');
