@@ -18,29 +18,24 @@ let charge = 0;
 
 const url_prefix = 'http://127.0.0.1:1338/test/output/';
 const examples = [
-    'P34712.cif',
-    'Q55GB6.pdb',
-    '121p.pdb',
-    '100d.cif.charges.cif',
-    '101m.cif.charges.cif',
-    '146d.cif.charges.cif',
-    '1a34.cif.charges.cif',
-    '1aga.cif.charges.cif',
-    '1c0q.cif.charges.cif',
-    '1cp8.cif.charges.cif',
-    '2p7d.cif.charges.cif',
-    '3c1p.cif.charges.cif',
-    '3wpc.cif.charges.cif',
-    '5boq.cif.charges.cif',
-    'Conformer3D_CID_155884675.sdf.charges.cif',
-    'Conformer3D_CID_16078.sdf.charges.cif',
-    'Conformer3D_CID_1832.sdf.charges.cif',
-    'Conformer3D_CID_2519.sdf.charges.cif',
-    'Conformer3D_CID_4980.sdf.charges.cif',
-    'Conformer3D_CID_5761.sdf.charges.cif',
-    'molecules.sdf.charges.cif',
+    '10gs.pdb.charges.cif',
+    '148l.pdb.charges.cif',
+    '1a9l.pdb.charges.cif',
+    '1aga.pdb.charges.cif',
+    '1alx.pdb.charges.cif',
+    '1dey.pdb.charges.cif',
+    '1ffz.pdb.charges.cif',
+    '2bg9.pdb.charges.cif',
+    '3bj1.pdb.charges.cif',
+    '3ciy.pdb.charges.cif',
+    '4wtv.pdb.charges.cif',
+    '5c9l.pdb.charges.cif',
+    '7sza.pdb.charges.cif',
+    '7zgc.pdb.charges.cif',
+    '8fuc.pdb.charges.cif',
+    '8hc9.pdb.charges.cif',
 ];
-const default_structure_url = url_prefix + 'P34712.cif';
+const default_structure_url = url_prefix + examples[0];
 
 const molstar = await MolstarPartialCharges.create('app');
 
