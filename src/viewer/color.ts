@@ -54,7 +54,7 @@ export function PartialChargesColorTheme(
     function color(location: Location): Color {
         if (!data) return Colors.Error;
 
-        const { typeIdToAtomIdToCharge, typeIdToResidueToCharge, maxAbsoluteCharges } = data;
+        const { typeIdToAtomIdToCharge, typeIdToResidueToCharge, maxAbsoluteAtomCharges } = data;
         const { absolute, showResidueCharge } = props;
 
         let id = -1;
@@ -71,7 +71,7 @@ export function PartialChargesColorTheme(
             }
         }
 
-        const maxCharge = absolute ? props.max : maxAbsoluteCharges.get(typeId) || 0;
+        const maxCharge = absolute ? props.max : maxAbsoluteAtomCharges.get(typeId) || 0;
         const charge = showResidueCharge
             ? typeIdToResidueToCharge.get(typeId)?.get(id)
             : typeIdToAtomIdToCharge.get(typeId)?.get(id);

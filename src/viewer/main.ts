@@ -138,7 +138,7 @@ export default class MolstarPartialCharges {
             const model = this.getModel();
             if (!model) throw new Error('No model loaded.');
             const typeId = PartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
-            const charge = PartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteCharges.get(typeId);
+            const charge = PartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteAtomCharges.get(typeId);
             if (!charge) throw new Error('No charge found.');
             return charge;
         },
