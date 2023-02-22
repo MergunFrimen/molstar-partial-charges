@@ -15,15 +15,8 @@ export default defineConfig({
             name: 'MolstarPartialCharges',
             entry: resolve(__dirname, 'src/index.ts'),
             formats: ['umd', 'es'],
-            fileName: (format) => `index.${format}.js`,
+            fileName: (format) => `molstar.${format}.js`,
         },
-        // modulePreload: {
-        //     polyfill: false,
-        // },
-        // watch: {
-        //     exclude: ['node_modules/**', 'dist/**'],
-        //     buildDelay: 1000,
-        // },
     },
     plugins: [dts()],
 });

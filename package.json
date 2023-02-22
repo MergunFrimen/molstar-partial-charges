@@ -18,13 +18,13 @@
         "atomic charges",
         "protein"
     ],
-    "type": "commonjs",
-    "main": "./dist/index.umd.js",
-    "module": "./dist/index.es.js",
+    "type": "module",
+    "main": "./dist/molstar.umd.js",
+    "module": "./dist/molstar.es.js",
     "exports": {
         ".": {
-            "import": "./dist/index.es.js",
-            "require": "./dist/index.umd.js"
+            "import": "./dist/molstar.es.js",
+            "require": "./dist/molstar.umd.js"
         }
     },
     "types": "./dist/index.d.ts",
