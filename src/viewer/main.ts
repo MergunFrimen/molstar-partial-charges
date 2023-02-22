@@ -12,60 +12,30 @@ import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
 import { PluginConfig } from 'molstar/lib/mol-plugin/config';
 import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
 import { Color, Representation3D, Size, Type } from './types';
-import merge from 'lodash.merge';
-import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 import { SbNcbrPartialCharges } from './behavior';
 import { SbNcbrPartialChargesPropertyProvider } from './property';
 import { SbNcbrPartialChargesColorThemeProvider } from './color';
+import merge from 'lodash.merge';
+import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 
-/**
- * Wrapper class for the Mol* plugin.
- *
- * This class provides a simple interface for loading structures and setting representations.
- */
 export default class MolstarPartialCharges {
     constructor(public plugin: PluginUIContext) {}
 
-    /**
-     * Create the plugin and attach it to the given HTML element.
-     *
-     * @param target ID of the HTML element to attach the plugin to
-     */
     static async create(target: string) {
         const defaultSpecs = DefaultPluginUISpec();
         const specs: PluginUISpec = {
-            actions: defaultSpecs.actions,
-            animations: defaultSpecs.animations,
             behaviors: [...defaultSpecs.behaviors, PluginSpec.Behavior(SbNcbrPartialCharges)],
             components: {
                 ...defaultSpecs.components,
-                controls: {
-                    ...defaultSpecs.components?.controls,
-                    top: undefined,
-                    bottom: undefined,
-                    left: undefined,
-                },
                 remoteState: 'none',
             },
-            config: [
-                [PluginConfig.General.DisableAntialiasing, PluginConfig.General.DisableAntialiasing.defaultValue],
-                // TODO: can created a custom preset
-                [PluginConfig.Structure.DefaultRepresentationPreset, 'auto'],
-                [PluginConfig.Viewport.ShowAnimation, false],
-                [PluginConfig.Viewport.ShowControls, true],
-                [PluginConfig.Viewport.ShowExpand, true],
-                [PluginConfig.Viewport.ShowSelectionMode, true],
-                [PluginConfig.Viewport.ShowSettings, true],
-                [PluginConfig.Viewport.ShowTrajectoryControls, true],
-            ],
-            customParamEditors: defaultSpecs.customParamEditors,
+            config: [[PluginConfig.Viewport.ShowAnimation, false]],
             layout: {
                 initial: {
-                    controlsDisplay: 'reactive',
                     isExpanded: false,
                     showControls: false,
                     regionState: {
-                        bottom: 'hidden',
+                        bottom: 'full',
                         left: 'collapsed',
                         right: 'full',
                         top: 'full',
@@ -80,12 +50,6 @@ export default class MolstarPartialCharges {
         return new MolstarPartialCharges(plugin);
     }
 
-    /**
-     * Load a structure from a URL and set the initial representation state.
-     *
-     * @param url URL of the structure to load
-     * @param format Format of the structure to load
-     */
     async load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
         await this.plugin.clear();
 
@@ -121,11 +85,6 @@ export default class MolstarPartialCharges {
         //     if (!data) throw new Error('No data found');
         //     return data.typeIdToMethod.get(typeId);
         // },
-        /**
-         * Set which partial charges are used.
-         *
-         * @param typeId Value of the partial charge type mmCIF tag
-         */
         setTypeId: async (typeId: number) => {
             await this.updateModelPropertyData(typeId);
         },
@@ -141,26 +100,15 @@ export default class MolstarPartialCharges {
     };
 
     color = {
-        /**
-         * Set the color theme to the default color theme (whatever Molstar picked on load).
-         */
         default: async () => {
             await this.updateColor('default');
         },
-        /**
-         * Set the partial charge range to absolute.
-         *
-         * @param max Absolute maximum partial charge
-         */
         absolute: async (max: number) => {
             await this.updateColor(this.partialChargesColorProps.name, {
                 max,
                 absolute: true,
             });
         },
-        /**
-         * Set the partial charge range to relative.
-         */
         relative: async () => {
             await this.updateColor(this.partialChargesColorProps.name, {
                 absolute: false,
@@ -169,16 +117,10 @@ export default class MolstarPartialCharges {
     };
 
     type = {
-        /**
-         * @returns Whether the loaded structure can be viewed with the cartoon or carbohydrate representation.
-         */
         isDefaultApplicable: () => {
             const other = ['cartoon', 'carbohydrate'];
             return Array.from(this.defaultProps.values()).some(({ type }) => other.includes(type.name));
         },
-        /**
-         * Set the representation type to the default type (whatever Molstar picked on load).
-         */
         default: async () => {
             await this.updateType('default');
         },
@@ -235,7 +177,7 @@ export default class MolstarPartialCharges {
     private readonly partialChargesColorProps: Color = {
         name: SbNcbrPartialChargesColorThemeProvider.name,
         params: {
-            // purposefully not using default values
+            // not using default values
         },
     };
     private readonly elementSymbolColorProps: Color = {
