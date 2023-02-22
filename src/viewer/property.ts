@@ -122,8 +122,8 @@ function getMaxAbsoluteCharges(
 
     typeIdToCharge.forEach((idToCharge, typeId) => {
         const charges = idToCharge.values() || [];
-        const min = Math.min(...charges);
-        const max = Math.max(...charges);
+        const min = Math.min(...Array.from(charges));
+        const max = Math.max(...Array.from(charges));
         const bound = Math.max(Math.abs(min), max);
         maxAbsoluteCharges.set(typeId, bound);
     });
@@ -161,7 +161,7 @@ export function isApplicable(model?: Model): boolean {
     return !!model && model.sourceData.kind === 'mmCIF' && hasPartialChargesCategories(model);
 }
 
-export const PartialChargesPropertyProvider: CustomModelProperty.Provider<
+export const SbNcbrPartialChargesPropertyProvider: CustomModelProperty.Provider<
     PartialChargesPropertyParams,
     PartialCharges
 > = CustomModelProperty.createProvider({

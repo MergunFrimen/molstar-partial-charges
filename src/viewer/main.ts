@@ -11,12 +11,12 @@ import { ElementSymbolColorThemeProvider } from 'molstar/lib/mol-theme/color/ele
 import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
 import { PluginConfig } from 'molstar/lib/mol-plugin/config';
 import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
-import { PartialChargesColorThemeProvider } from './color';
-import { PartialChargesLociLabelProvider } from './label';
-import { PartialChargesPropertyProvider } from './property';
 import { Color, Representation3D, Size, Type } from './types';
 import merge from 'lodash.merge';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
+import { SbNcbrPartialCharges } from './behavior';
+import { SbNcbrPartialChargesPropertyProvider } from './property';
+import { SbNcbrPartialChargesColorThemeProvider } from './color';
 
 /**
  * Wrapper class for the Mol* plugin.
@@ -36,7 +36,7 @@ export default class MolstarPartialCharges {
         const specs: PluginUISpec = {
             actions: defaultSpecs.actions,
             animations: defaultSpecs.animations,
-            behaviors: [...defaultSpecs.behaviors, PluginSpec.Behavior(PartialChargesLociLabelProvider)],
+            behaviors: [...defaultSpecs.behaviors, PluginSpec.Behavior(SbNcbrPartialCharges)],
             components: {
                 ...defaultSpecs.components,
                 controls: {
@@ -76,12 +76,7 @@ export default class MolstarPartialCharges {
 
         const root = document.getElementById(target);
         if (!root) throw new Error(`Element with ID '${target}' not found.`);
-
         const plugin = await createPluginUI(root, specs);
-
-        plugin.customModelProperties.register(PartialChargesPropertyProvider, true);
-        plugin.representation.structure.themes.colorThemeRegistry.add(PartialChargesColorThemeProvider);
-
         return new MolstarPartialCharges(plugin);
     }
 
@@ -108,21 +103,21 @@ export default class MolstarPartialCharges {
         // getTypeIds: () => {
         //     const model = this.getModel();
         //     if (!model) throw new Error('No model found');
-        //     const data = PartialChargesPropertyProvider.get(model).value?.data;
+        //     const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
         //     if (!data) throw new Error('No data found');
         //     return data.typeIdToMethod.keys();
         // },
         getMethodNames: () => {
             const model = this.getModel();
             if (!model) throw new Error('No model found');
-            const data = PartialChargesPropertyProvider.get(model).value?.data;
+            const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
             if (!data) throw new Error('No data found');
             return Array.from(data.typeIdToMethod.values());
         },
         // getMethodName: (typeId: number) => {
         //     const model = this.getModel();
         //     if (!model) throw new Error('No model found');
-        //     const data = PartialChargesPropertyProvider.get(model).value?.data;
+        //     const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
         //     if (!data) throw new Error('No data found');
         //     return data.typeIdToMethod.get(typeId);
         // },
@@ -137,8 +132,9 @@ export default class MolstarPartialCharges {
         getRelativeCharge: () => {
             const model = this.getModel();
             if (!model) throw new Error('No model loaded.');
-            const typeId = PartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
-            const charge = PartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteAtomCharges.get(typeId);
+            const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
+            const charge =
+                SbNcbrPartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteAtomCharges.get(typeId);
             if (!charge) throw new Error('No charge found.');
             return charge;
         },
@@ -237,7 +233,7 @@ export default class MolstarPartialCharges {
         },
     };
     private readonly partialChargesColorProps: Color = {
-        name: PartialChargesColorThemeProvider.name,
+        name: SbNcbrPartialChargesColorThemeProvider.name,
         params: {
             // purposefully not using default values
         },
@@ -362,7 +358,7 @@ export default class MolstarPartialCharges {
 
     private async updateFocusColorTheme(color: Color['name'], params: Color['params'] = {}) {
         let props =
-            color === PartialChargesColorThemeProvider.name
+            color === SbNcbrPartialChargesColorThemeProvider.name
                 ? this.partialChargesColorProps
                 : this.elementSymbolColorProps;
         props = merge({}, props, { params: { ...params, showResidueCharge: false } });
@@ -375,8 +371,8 @@ export default class MolstarPartialCharges {
     private async updateModelPropertyData(typeId: number) {
         const model = this.getModel();
         if (!model || !this.isTypeIdValid(model, typeId)) return;
-        PartialChargesPropertyProvider.set(model, { typeId });
-        await this.updateColor(PartialChargesColorThemeProvider.name, { typeId });
+        SbNcbrPartialChargesPropertyProvider.set(model, { typeId });
+        await this.updateColor(SbNcbrPartialChargesColorThemeProvider.name, { typeId });
     }
 
     private getModel() {

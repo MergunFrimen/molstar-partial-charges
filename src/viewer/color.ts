@@ -4,7 +4,7 @@ import { ThemeDataContext } from 'molstar/lib/mol-theme/theme';
 import { Color } from 'molstar/lib/mol-util/color';
 import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
 import { Location } from 'molstar/lib/mol-model/location';
-import { PartialChargesPropertyProvider, isApplicable } from './property';
+import { SbNcbrPartialChargesPropertyProvider, isApplicable } from './property';
 import { CustomProperty } from 'molstar/lib/mol-model-props/common/custom-property';
 
 const Colors = {
@@ -17,7 +17,7 @@ export const PartialChargesThemeParams = {
     max: PD.Numeric(0, { min: 0 }),
     typeId: PD.Numeric(-1, undefined, { isHidden: true }),
     absolute: PD.Boolean(false, { isHidden: false }),
-    showResidueCharge: PD.Boolean(false, { isHidden: false }),
+    showResidueCharge: PD.Boolean(true, { isHidden: false }),
 };
 export type PartialChargesThemeParams = typeof PartialChargesThemeParams;
 
@@ -48,8 +48,8 @@ export function PartialChargesColorTheme(
 ): ColorTheme<PartialChargesThemeParams> {
     const model = ctx.structure?.models[0];
     if (!model) throw new Error('No model found');
-    const data = PartialChargesPropertyProvider.get(model).value?.data;
-    const typeId = PartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
+    const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
+    const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
 
     function color(location: Location): Color {
         if (!data) return Colors.Error;
@@ -90,7 +90,7 @@ export function PartialChargesColorTheme(
     };
 }
 
-export const PartialChargesColorThemeProvider: ColorTheme.Provider<
+export const SbNcbrPartialChargesColorThemeProvider: ColorTheme.Provider<
     PartialChargesThemeParams,
     'sb-ncbr-partial-charges'
 > = {
@@ -105,8 +105,8 @@ export const PartialChargesColorThemeProvider: ColorTheme.Provider<
     ensureCustomProperties: {
         attach: (ctx: CustomProperty.Context, data: ThemeDataContext) =>
             data.structure
-                ? PartialChargesPropertyProvider.attach(ctx, data.structure.models[0], void 0, true)
+                ? SbNcbrPartialChargesPropertyProvider.attach(ctx, data.structure.models[0], void 0, true)
                 : Promise.resolve(),
-        detach: (data) => data.structure && PartialChargesPropertyProvider.ref(data.structure.models[0], false),
+        detach: (data) => data.structure && SbNcbrPartialChargesPropertyProvider.ref(data.structure.models[0], false),
     },
 };
