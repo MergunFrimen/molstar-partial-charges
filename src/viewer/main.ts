@@ -61,6 +61,7 @@ export default class MolstarPartialCharges {
         });
 
         await this.setInitialRepresentationState();
+        this.sanityCheck();
     }
 
     charges = {
@@ -92,8 +93,7 @@ export default class MolstarPartialCharges {
             const model = this.getModel();
             if (!model) throw new Error('No model loaded.');
             const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
-            const charge =
-                SbNcbrPartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteAtomCharges.get(typeId);
+            const charge = SbNcbrPartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteCharges.get(typeId);
             if (!charge) throw new Error('No charge found.');
             return charge;
         },
@@ -290,6 +290,18 @@ export default class MolstarPartialCharges {
             }
             await this.updateFocusColorTheme(name, params);
         });
+    }
+
+    private sanityCheck() {
+        // if (!this.plugin) throw new Error('No plugin found.');
+        // if (!this.plugin.managers.structure.hierarchy.current.structures.length)
+        //     throw new Error('No structure loaded.');
+        const model = this.getModel();
+        if (!model) throw new Error('No model loaded.');
+        const sourceData = model.sourceData as MmcifFormat;
+        const atomCount = model.atomicHierarchy.atoms._rowCount;
+        const chargesCount = sourceData.data.frame.categories.partial_atomic_charges.rowCount;
+        if (atomCount !== chargesCount) throw new Error('Atom count does not match charge count.');
     }
 
     private updateGranularity(type: Type['name']) {
