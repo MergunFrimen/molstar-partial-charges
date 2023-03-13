@@ -15,6 +15,8 @@ import { Color, Representation3D, Size, Type } from './types';
 import { SbNcbrPartialCharges } from './behavior';
 import { SbNcbrPartialChargesPropertyProvider } from './property';
 import { SbNcbrPartialChargesColorThemeProvider } from './color';
+import { MAQualityAssessment } from 'molstar/lib/extensions/model-archive/quality-assessment/behavior';
+import { PLDDTConfidenceColorThemeProvider } from 'molstar/lib/extensions/model-archive/quality-assessment/color/plddt';
 import merge from 'lodash.merge';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 
@@ -24,7 +26,11 @@ export default class MolstarPartialCharges {
     static async create(target: string) {
         const defaultSpecs = DefaultPluginUISpec();
         const specs: PluginUISpec = {
-            behaviors: [...defaultSpecs.behaviors, PluginSpec.Behavior(SbNcbrPartialCharges)],
+            behaviors: [
+                ...defaultSpecs.behaviors,
+                PluginSpec.Behavior(SbNcbrPartialCharges),
+                PluginSpec.Behavior(MAQualityAssessment),
+            ],
             components: {
                 ...defaultSpecs.components,
                 remoteState: 'none',
@@ -102,6 +108,9 @@ export default class MolstarPartialCharges {
     color = {
         default: async () => {
             await this.updateColor('default');
+        },
+        alphaFold: async () => {
+            await this.updateColor(PLDDTConfidenceColorThemeProvider.name);
         },
         absolute: async (max: number) => {
             await this.updateColor(this.partialChargesColorProps.name, {
