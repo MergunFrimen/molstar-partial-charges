@@ -1,6 +1,6 @@
 {
     "name": "molstar-partial-charges",
-    "version": "0.0.9",
+    "version": "0.0.10",
     "description": "Molstar plugin for partial charges",
     "author": "Dominik Tichý",
     "license": "MIT",
