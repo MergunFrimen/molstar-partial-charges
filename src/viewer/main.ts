@@ -4,21 +4,23 @@ import { DefaultPluginUISpec, PluginUISpec } from 'molstar/lib/mol-plugin-ui/spe
 import { StructureFocusRepresentation } from 'molstar/lib/mol-plugin/behavior/dynamic/selection/structure-focus-representation';
 import { PluginSpec } from 'molstar/lib/mol-plugin/spec';
 import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
-import { Model } from 'molstar/lib/mol-model/structure';
+import { Model, StructureSelection } from 'molstar/lib/mol-model/structure';
 import { BallAndStickRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/ball-and-stick';
 import { GaussianSurfaceRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/gaussian-surface';
 import { ElementSymbolColorThemeProvider } from 'molstar/lib/mol-theme/color/element-symbol';
 import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
 import { PluginConfig } from 'molstar/lib/mol-plugin/config';
 import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
-import { Color, Representation3D, Size, Type } from './types';
+import { AtomKey, Color, Representation3D, Size, Type } from './types';
 import { SbNcbrPartialCharges } from './behavior';
-import { SbNcbrPartialChargesPropertyProvider } from './property';
+import { SbNcbrPartialChargesPropertyProvider, isApplicable } from './property';
 import { SbNcbrPartialChargesColorThemeProvider } from './color';
 import { MAQualityAssessment } from 'molstar/lib/extensions/model-archive/quality-assessment/behavior';
 import { PLDDTConfidenceColorThemeProvider } from 'molstar/lib/extensions/model-archive/quality-assessment/color/plddt';
 import merge from 'lodash.merge';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
+import { Script } from 'molstar/lib/mol-script/script';
+import { Loci } from 'molstar/lib/mol-model/loci';
 
 export default class MolstarPartialCharges {
     constructor(public plugin: PluginUIContext) {}
@@ -67,7 +69,10 @@ export default class MolstarPartialCharges {
         });
 
         await this.setInitialRepresentationState();
-        this.sanityCheck();
+
+        if (format === 'mmcif') {
+            this.sanityCheck();
+        }
     }
 
     charges = {
@@ -141,8 +146,29 @@ export default class MolstarPartialCharges {
         },
     };
     visual = {
-        focus: async () => {
-            // TODO: Implement
+        focus: (key: AtomKey) => {
+            const data = this.plugin.managers.structure.hierarchy.current.structures[0].components[0].cell.obj?.data;
+            if (!data) return;
+
+            const { labelCompId, labelSeqId, labelAtomId } = key;
+
+            const sel = Script.getStructureSelection(
+                (Q) =>
+                    Q.struct.generator.atomGroups({
+                        'atom-test': Q.core.logic.and([
+                            Q.core.rel.eq([Q.struct.atomProperty.macromolecular.label_comp_id(), labelCompId]),
+                            Q.core.rel.eq([Q.struct.atomProperty.macromolecular.label_seq_id(), labelSeqId]),
+                            Q.core.rel.eq([Q.struct.atomProperty.macromolecular.label_atom_id(), labelAtomId]),
+                        ]),
+                    }),
+                data
+            );
+
+            const loci = StructureSelection.toLociWithSourceUnits(sel);
+            this.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci });
+            this.plugin.managers.interactivity.lociSelects.selectOnly({ loci });
+            this.plugin.managers.camera.focusLoci(loci);
+            this.plugin.managers.structure.focus.setFromLoci(loci);
         },
     };
 

@@ -20,3 +20,9 @@ export type Size = {
     name: SizeTheme.BuiltIn;
     params: SizeTheme.BuiltInParams<SizeTheme.BuiltIn>;
 };
+
+export type AtomKey = {
+    labelCompId: string;
+    labelSeqId: number;
+    labelAtomId: string;
+};
