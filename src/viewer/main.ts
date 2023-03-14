@@ -13,14 +13,13 @@ import { PluginConfig } from 'molstar/lib/mol-plugin/config';
 import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
 import { AtomKey, Color, Representation3D, Size, Type } from './types';
 import { SbNcbrPartialCharges } from './behavior';
-import { SbNcbrPartialChargesPropertyProvider, isApplicable } from './property';
+import { SbNcbrPartialChargesPropertyProvider } from './property';
 import { SbNcbrPartialChargesColorThemeProvider } from './color';
 import { MAQualityAssessment } from 'molstar/lib/extensions/model-archive/quality-assessment/behavior';
 import { PLDDTConfidenceColorThemeProvider } from 'molstar/lib/extensions/model-archive/quality-assessment/color/plddt';
 import merge from 'lodash.merge';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 import { Script } from 'molstar/lib/mol-script/script';
-import { Loci } from 'molstar/lib/mol-model/loci';
 
 export default class MolstarPartialCharges {
     constructor(public plugin: PluginUIContext) {}
