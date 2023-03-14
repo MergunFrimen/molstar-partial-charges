@@ -16,24 +16,9 @@ import { compile } from 'molstar/lib/mol-script/runtime/query/compiler';
 let current_example = 0;
 let charge = 0;
 
-const url_prefix = 'http://127.0.0.1:1338/test/output/';
+const url_prefix = 'http://127.0.0.1:5501/examples/files/';
 const examples = [
-    '10gs.pdb.charges.cif',
-    '148l.pdb.charges.cif',
-    '1a9l.pdb.charges.cif',
-    '1aga.pdb.charges.cif',
-    '1alx.pdb.charges.cif',
-    '1dey.pdb.charges.cif',
-    '1ffz.pdb.charges.cif',
-    '2bg9.pdb.charges.cif',
-    '3bj1.pdb.charges.cif',
-    '3ciy.pdb.charges.cif',
-    '4wtv.pdb.charges.cif',
-    '5c9l.pdb.charges.cif',
-    '7sza.pdb.charges.cif',
-    '7zgc.pdb.charges.cif',
-    '8fuc.pdb.charges.cif',
-    '8hc9.pdb.charges.cif',
+    'Q9C6B8_added_H.cif'
 ];
 const default_structure_url = url_prefix + examples[0];
 
@@ -84,6 +69,9 @@ addHeader('View');
 addControl('Default\n(=Cartoon)', async () => await molstar.type.default(), 'controls-view-default');
 addControl('Surface', async () => await molstar.type.surface());
 addControl('Ball and stick', async () => await molstar.type.ballAndStick());
+
+addHeader('Color');
+addControl('AlphaFold', async () => await molstar.color.alphaFold());
 
 const colorStates = ['Charges', 'Default'];
 let nextColor = 1;

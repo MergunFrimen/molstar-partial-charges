@@ -195,6 +195,12 @@ export default class MolstarPartialCharges {
             ...ElementSymbolColorThemeProvider.defaultValues,
         },
     };
+    private readonly plddtColorProps: Color = {
+        name: PLDDTConfidenceColorThemeProvider.name,
+        params: {
+            ...PLDDTConfidenceColorThemeProvider.defaultValues,
+        },
+    };
     private readonly physicalSizeProps: Size = {
         name: PhysicalSizeThemeProvider.name,
         params: {
@@ -278,6 +284,8 @@ export default class MolstarPartialCharges {
                             colorTheme = this.elementSymbolColorProps;
                         } else if (name === this.partialChargesColorProps.name) {
                             colorTheme = this.partialChargesColorProps;
+                        } else if (name === this.plddtColorProps.name) {
+                            colorTheme = this.plddtColorProps;
                         } else if (name === 'default') {
                             colorTheme = this.defaultProps.get(representation.cell.transform.ref)?.colorTheme;
                         } else {
