@@ -226,12 +226,12 @@ export default class MolstarPartialCharges {
             ...PLDDTConfidenceColorThemeProvider.defaultValues,
         },
     };
-    private readonly physicalSizeProps: Size = {
-        name: PhysicalSizeThemeProvider.name,
-        params: {
-            ...PhysicalSizeThemeProvider.defaultValues,
-        },
-    };
+    // private readonly physicalSizeProps: Size = {
+    //     name: PhysicalSizeThemeProvider.name,
+    //     params: {
+    //         ...PhysicalSizeThemeProvider.defaultValues,
+    //     },
+    // };
 
     private async setInitialRepresentationState() {
         this.defaultProps.clear();
