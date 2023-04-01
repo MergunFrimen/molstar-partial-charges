@@ -1,25 +1,17 @@
 import './style.css';
 import MolstarPartialCharges from '../src/viewer/main';
-import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
-import { Script } from 'molstar/lib/mol-script/script';
-import { QueryContext, StructureProperties, StructureSelection } from 'molstar/lib/mol-model/structure';
-import { Loci } from 'molstar/lib/mol-model/loci';
-import { OrderedSet } from 'molstar/lib/mol-data/int/ordered-set';
-import { PluginStateObject } from 'molstar/lib/mol-plugin-state/objects';
-import { MolScriptBuilder as MS } from 'molstar/lib/mol-script/language/builder';
-import { compile } from 'molstar/lib/mol-script/runtime/query/compiler';
 import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
 
 /**
  * Example use of the plugin wrapper
  */
 
-let current_example = 0;
+let current_example = 3;
 let charge = 0;
 
 const url_prefix = 'http://127.0.0.1:5501/examples/test/';
-const examples = ['Q55GB6.pdb', 'Q55GB6_added_H.pdb', 'Q9C6B8_added_H.cif'];
-const default_structure_url = url_prefix + examples[1];
+const examples = ['4wtv.cif.charges.cif', '4wtv.pdb.charges.cif', '1c0q.cif.charges.cif', '1alx.pdb.charges.cif'];
+const default_structure_url = url_prefix + examples[current_example];
 
 const molstar = await MolstarPartialCharges.create('app');
 
@@ -33,37 +25,7 @@ window.molstar = molstar;
 
 // Initialize Mol* and load the default structure
 (async () => {
-    // load pdf structure
-    await molstar.load(default_structure_url, 'pdb');
-    await molstar.type.ballAndStick();
-    await molstar.color.default();
-
-    // try to focus on problematic atom
-    // const data = molstar.plugin.managers.structure.hierarchy.current.structures[0].components[0].cell.obj?.data;
-    // if (!data) return;
-
-    // const labelCompId = 'GLN';
-    // const labelSeqId = 33;
-    // const labelAtomId = 'CG';
-    // const sel = Script.getStructureSelection(
-    //     (Q) =>
-    //         Q.struct.generator.atomGroups({
-    //             'atom-test': Q.core.logic.and([
-    //                 Q.core.rel.eq([Q.struct.atomProperty.macromolecular.label_comp_id(), labelCompId]),
-    //                 Q.core.rel.eq([Q.struct.atomProperty.macromolecular.label_seq_id(), labelSeqId]),
-    //                 Q.core.rel.eq([Q.struct.atomProperty.macromolecular.label_atom_id(), labelAtomId]),
-    //             ]),
-    //         }),
-    //     data
-    // );
-
-    // const loci = StructureSelection.toLociWithSourceUnits(sel);
-    // console.log(Loci.isEmpty(loci));
-    // molstar.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci });
-    // molstar.plugin.managers.interactivity.lociSelects.selectOnly({ loci });
-    // molstar.plugin.managers.camera.focusLoci(loci);
-    // molstar.plugin.managers.structure.focus.setFromLoci(loci);
-    // await load(default_structure_url, 'pdb');
+    await molstar.load(default_structure_url, 'mmcif');
 })().then(
     () => {},
     (e) => console.error('Molstar Partial Charges initialization failed', e)

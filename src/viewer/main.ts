@@ -244,8 +244,8 @@ export default class MolstarPartialCharges {
                         const { type } = params;
                         this.defaultProps.set(representation.cell.transform.ref, {
                             type: type as Type,
-                            colorTheme: this.elementSymbolColorProps,
-                            sizeTheme: this.physicalSizeProps,
+                            colorTheme: params.colorTheme as Color,
+                            sizeTheme: params.sizeTheme as Size,
                         });
                     }
                 }
@@ -269,9 +269,11 @@ export default class MolstarPartialCharges {
                         } else if (name === this.surfaceTypeProps.type.name) {
                             type = this.surfaceTypeProps.type;
                             sizeTheme = this.surfaceTypeProps.sizeTheme;
-                        } else {
+                        } else if (name == 'default') {
                             type = this.defaultProps.get(representation.cell.transform.ref)?.type;
                             sizeTheme = this.defaultProps.get(representation.cell.transform.ref)?.sizeTheme;
+                        } else {
+                            throw new Error('Invalid type theme');
                         }
 
                         const oldProps = representation.cell.transform.params;
@@ -343,7 +345,8 @@ export default class MolstarPartialCharges {
         const sourceData = model.sourceData as MmcifFormat;
         const atomCount = model.atomicHierarchy.atoms._rowCount;
         const chargesCount = sourceData.data.frame.categories.partial_atomic_charges.rowCount;
-        if (atomCount !== chargesCount) throw new Error('Atom count does not match charge count.');
+        if (atomCount !== chargesCount)
+            throw new Error(`Atom count (${atomCount}) does not match charge count (${chargesCount}).`);
     }
 
     private updateGranularity(type: Type['name']) {
