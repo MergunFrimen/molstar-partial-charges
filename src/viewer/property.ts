@@ -121,9 +121,8 @@ function getMaxAbsoluteCharges(
     const maxAbsoluteCharges: Map<number, number> = new Map();
 
     typeIdToCharge.forEach((idToCharge, typeId) => {
-        const charges = idToCharge.values() || [];
-        const min = Math.min(...Array.from(charges));
-        const max = Math.max(...Array.from(charges));
+        const min = Math.min(...Array.from(idToCharge.values()));
+        const max = Math.max(...Array.from(idToCharge.values()));
         const bound = Math.max(Math.abs(min), max);
         maxAbsoluteCharges.set(typeId, bound);
     });
