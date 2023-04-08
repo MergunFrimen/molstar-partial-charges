@@ -1,16 +1,30 @@
 import './style.css';
 import MolstarPartialCharges from '../src/viewer/main';
 import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
+import { Script } from 'molstar/lib/mol-script/script';
+import { StructureSelection } from 'molstar/lib/mol-model/structure';
+import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
+import { assert } from 'console';
+import { SbNcbrPartialChargesPropertyProvider } from '../src/viewer/property';
 
 /**
  * Example use of the plugin wrapper
  */
 
-let current_example = 3;
+let current_example = 0;
 let charge = 0;
 
-const url_prefix = 'http://127.0.0.1:5501/examples/test/';
-const examples = ['4wtv.cif.charges.cif', '4wtv.pdb.charges.cif', '1c0q.cif.charges.cif', '1alx.pdb.charges.cif'];
+const url_prefix = 'http://127.0.0.1:5500/test/output/';
+const examples = [
+    '1c0q.cif.charges.cif',
+    '2_4_dinitrophenol.charges.cif',
+    '2_chlorophenol.charges.cif',
+    '3_chlorophenol.charges.cif',
+    '4_nitrophenol.charges.cif',
+    'm_cresol.charges.cif',
+    'o_cresol.charges.cif',
+    'propofol.charges.cif',
+];
 const default_structure_url = url_prefix + examples[current_example];
 
 const molstar = await MolstarPartialCharges.create('app');
@@ -25,11 +39,15 @@ window.molstar = molstar;
 
 // Initialize Mol* and load the default structure
 (async () => {
-    await molstar.load(default_structure_url, 'mmcif');
+    await load(default_structure_url, 'mmcif');
 })().then(
     () => {},
     (e) => console.error('Molstar Partial Charges initialization failed', e)
 );
+
+function delay(ms: number) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 addHeader('View');
 addControl('Default\n(=Cartoon)', async () => await molstar.type.default(), 'controls-view-default');
@@ -38,45 +56,38 @@ addControl('Ball and stick', async () => await molstar.type.ballAndStick());
 
 addHeader('Color');
 addControl('AlphaFold', async () => await molstar.color.alphaFold());
+addControl('Default', async () => await molstar.color.default());
+addControl('Charges', async () => await molstar.color.relative());
 
-const colorStates = ['Charges', 'Default'];
-let nextColor = 1;
 addHeader('', 'controls-charge-header');
 addHeader('Set charge range');
-addControl(colorStates[nextColor], switchColorThemes, 'controls-color-switch-default-charges');
+addControl('Relative range', async () => {
+    const relativeCharge = molstar.charges.getRelativeCharge();
+    await updateSliderMax(relativeCharge);
+    await updateCharge(relativeCharge);
+});
 addControl('Absolute range', async () => {
     const input = document.getElementById('max-charge') as HTMLInputElement;
     if (!input) return;
     const value = input.value;
     const placeholder = input.placeholder;
-    const defaultValue = !isNaN(Number(placeholder)) ? Number(placeholder) : 0;
+    const defaultValue = !isNaN(Number(placeholder)) ? Number(placeholder) : 1;
     const parsed = value !== '' && !isNaN(Number(value)) ? Number(value) : defaultValue;
     await updateSliderMax(parsed);
 });
-addInput('max-charge', '0.0');
-// addControl('Absolute (+0.01)', async () => {
-//     await updateCharge(charge + 0.01);
-// });
-// addControl('Absolute (-0.01)', async () => {
-//     await updateCharge(charge - 0.01);
-// });
-// addControl('Absolute (+0.001)', async () => {
-//     await updateCharge(charge + 0.001);
-// });
-// addControl('Absolute (-0.001)', async () => {
-//     await updateCharge(charge - 0.001);
-// });
-addControl('Relative range', async () => {
-    const relativeCharge = molstar.charges.getRelativeCharge();
-    await updateSliderMax(relativeCharge);
-    await updateCharge(relativeCharge);
+addInput('max-charge', '1.0');
+addControl('Absolute (+0.1)', async () => {
+    await updateSliderMax(charge + 0.1);
+    await updateCharge(charge + 0.1);
+});
+addControl('Absolute (-0.1)', async () => {
+    await updateCharge(charge - 0.1);
 });
 addSlider('charge-slider', 0, 1, 0.001, async () => {
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!slider) return;
     const chg = Number(slider.value);
     await updateCharge(chg);
-    updateButtonLabel(1);
 });
 
 addHeader('Change charge set');
@@ -86,11 +97,59 @@ addHeader('Load');
 addControl('Next example', nextExample);
 addDropdown('examples-dropdown', examples, async (value) => {
     current_example = examples.indexOf(value);
-    await load(url_prefix + value, 'pdb');
+    await load(url_prefix + value, 'mmcif');
 });
 
-addHeader('Focus');
-addControl('Focus', async () => molstar.visual.focus({ labelCompId: 'GLN', labelSeqId: 33, labelAtomId: 'CD' }));
+let last_index = -1;
+let stop: boolean = true;
+addHeader('Test');
+addControl('Test loci labels', async () => {
+    stop = !stop;
+    testLociLabels();
+});
+
+async function testLociLabels() {
+    const model = molstar.getModel();
+    if (!model) throw new Error('No model loaded.');
+    const sourceData = model.sourceData as MmcifFormat;
+    const atomCount = model.atomicHierarchy.atoms._rowCount;
+    while (true) {
+        if (stop) return;
+        last_index = (last_index + 1) % atomCount;
+
+        // indexing from 0
+        const label_asym_id = sourceData.data.db.atom_site.label_asym_id.value(last_index); // chain
+        const label_comp_id = sourceData.data.db.atom_site.label_comp_id.value(last_index); // residue
+        const label_seq_id = sourceData.data.db.atom_site.label_seq_id.value(last_index); // residue number
+        const label_atom_id = sourceData.data.db.atom_site.label_atom_id.value(last_index); // atom
+        const label_alt_id = sourceData.data.db.atom_site.label_alt_id.value(last_index); // altloc
+        const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
+
+        if (!data) {
+            console.log('No data');
+            return;
+        }
+        const { typeIdToAtomIdToCharge, typeIdToResidueToCharge } = data;
+        const atomCharge = typeIdToAtomIdToCharge.get(1)?.get(last_index + 1);
+        const residueCharge = typeIdToResidueToCharge.get(1)?.get(last_index + 1);
+
+        console.log(
+            last_index + 1,
+            label_asym_id,
+            label_comp_id,
+            label_seq_id,
+            label_atom_id,
+            atomCharge,
+            Number(residueCharge?.toPrecision(4))
+        );
+
+        // input mmCIF file should not have altlocs
+        console.assert(label_alt_id === 'A' || label_alt_id === '');
+
+        molstar.visual.focus({ labelAtomId: label_atom_id, labelSeqId: label_seq_id, labelCompId: label_comp_id });
+        await delay(1000);
+    }
+}
 
 async function load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
     await molstar.load(url, format);
@@ -175,7 +234,7 @@ async function updateSliderMax(max: number) {
     if (old_value > max) {
         await updateCharge(max);
     } else {
-        // slider.value = old_value.toFixed(3);
+        slider.value = old_value.toFixed(3);
     }
 }
 
@@ -210,26 +269,5 @@ function addOptionsToDropdown(id: string, options: string[]) {
         opt.setAttribute('value', option);
         opt.innerText = option;
         select.appendChild(opt);
-    }
-}
-
-async function switchColorThemes() {
-    updateButtonLabel();
-    if (nextColor === 0) {
-        await molstar.color.default();
-    } else {
-        await molstar.color.absolute(charge);
-    }
-}
-
-function updateButtonLabel(color?: number) {
-    const btn = document.getElementById('controls-color-switch-default-charges') as HTMLButtonElement;
-    if (!btn) return;
-    if (color === undefined) {
-        btn.innerText = nextColor === 0 ? 'Default' : 'Charges';
-        nextColor = (nextColor + 1) % 2;
-    } else {
-        btn.innerText = colorStates[color];
-        nextColor = color;
     }
 }
