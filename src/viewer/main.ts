@@ -76,27 +76,18 @@ export default class MolstarPartialCharges {
     }
 
     charges = {
-        // getTypeIds: () => {
-        //     const model = this.getModel();
-        //     if (!model) throw new Error('No model found');
-        //     const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
-        //     if (!data) throw new Error('No data found');
-        //     return data.typeIdToMethod.keys();
-        // },
         getMethodNames: () => {
             const model = this.getModel();
             if (!model) throw new Error('No model found');
             const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
             if (!data) throw new Error('No data found');
-            return Array.from(data.typeIdToMethod.values());
+            const methodNames = [];
+            for (let typeId = 1; typeId < data.typeIdToMethod.size + 1; ++typeId) {
+                if (!data.typeIdToMethod.has(typeId)) throw new Error(`Missing method for typeId ${typeId}`);
+                methodNames.push(data.typeIdToMethod.get(typeId));
+            }
+            return methodNames;
         },
-        // getMethodName: (typeId: number) => {
-        //     const model = this.getModel();
-        //     if (!model) throw new Error('No model found');
-        //     const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
-        //     if (!data) throw new Error('No data found');
-        //     return data.typeIdToMethod.get(typeId);
-        // },
         setTypeId: async (typeId: number) => {
             await this.updateModelPropertyData(typeId);
         },
@@ -346,7 +337,7 @@ export default class MolstarPartialCharges {
         const sourceData = model.sourceData as MmcifFormat;
         const atomCount = model.atomicHierarchy.atoms._rowCount;
         const chargesCount = sourceData.data.frame.categories.partial_atomic_charges.rowCount;
-        if (atomCount !== chargesCount)
+        if (chargesCount > 0 && chargesCount % atomCount !== 0)
             throw new Error(`Atom count (${atomCount}) does not match charge count (${chargesCount}).`);
     }
 
@@ -381,9 +372,7 @@ export default class MolstarPartialCharges {
 
     private isTypeIdValid(model: Model, typeId: number) {
         const sourceData = model.sourceData as MmcifFormat;
-        const typeIds = new Set(
-            sourceData.data.frame.categories.partial_atomic_charges_meta.getField('type')?.toIntArray()
-        );
-        return typeIds.has(typeId);
+        const typeIds = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('id')?.toIntArray();
+        return typeIds?.includes(typeId);
     }
 }

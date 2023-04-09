@@ -92,7 +92,12 @@ addSlider('charge-slider', 0, 1, 0.001, async () => {
 });
 
 addHeader('Change charge set');
-addDropdown('charge-set-dropdown', [], async (value) => {});
+addDropdown('charge-set-dropdown', [], async (value) => {
+    await molstar.charges.setTypeId(Number(value));
+    const relativeCharge = molstar.charges.getRelativeCharge();
+    await updateSliderMax(relativeCharge);
+    await updateCharge(relativeCharge);
+});
 
 addHeader('Load');
 addControl('Next example', nextExample);
@@ -127,7 +132,7 @@ async function testLociLabels() {
         const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
 
         if (!data) {
-            console.log('No data');
+            console.error('No data');
             return;
         }
         const { typeIdToAtomIdToCharge, typeIdToResidueToCharge, maxAbsoluteCharges } = data;
@@ -165,13 +170,14 @@ async function load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
     let maxAbsoluteRelativeCharge = Number(molstar.charges.getRelativeCharge().toFixed(4));
     await updateSliderMax(maxAbsoluteRelativeCharge);
     await updateCharge(maxAbsoluteRelativeCharge);
+
     addOptionsToDropdown('charge-set-dropdown', molstar.charges.getMethodNames());
 }
 
 function switchOffCartoonView() {
     const view = document.getElementById('controls-view-default');
     if (!view) return false;
-    if (!molstar.type.isDefaultApplicable) {
+    if (!molstar.type.isDefaultApplicable()) {
         view.setAttribute('disabled', 'true');
         return true;
     } else {
@@ -269,7 +275,7 @@ function addOptionsToDropdown(id: string, options: string[]) {
     select.options.length = 0;
     for (const option of options) {
         const opt = document.createElement('option');
-        opt.setAttribute('value', option);
+        opt.setAttribute('value', (options.indexOf(option) + 1).toString());
         opt.innerText = option;
         select.appendChild(opt);
     }
