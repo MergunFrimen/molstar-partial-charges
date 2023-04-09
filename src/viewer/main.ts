@@ -95,9 +95,11 @@ export default class MolstarPartialCharges {
             const model = this.getModel();
             if (!model) throw new Error('No model loaded.');
             const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
-            const charge = SbNcbrPartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteCharges.get(typeId);
-            if (!charge) throw new Error('No charge found.');
-            return charge;
+            const maxCharge =
+                SbNcbrPartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteCharges.get(typeId);
+            console.log(typeId, maxCharge, SbNcbrPartialChargesPropertyProvider.get(model).value?.data);
+            if (maxCharge === undefined) throw new Error('No charge found.');
+            return maxCharge;
         },
     };
 
@@ -110,7 +112,7 @@ export default class MolstarPartialCharges {
         },
         absolute: async (max: number) => {
             await this.updateColor(this.partialChargesColorProps.name, {
-                max,
+                maxAbsoluteCharge: max,
                 absolute: true,
             });
         },
@@ -196,7 +198,7 @@ export default class MolstarPartialCharges {
             name: PhysicalSizeThemeProvider.name,
             params: {
                 ...PhysicalSizeThemeProvider.defaultValues,
-                // scale: 1,
+                scale: 1,
             },
         },
     };
@@ -311,11 +313,16 @@ export default class MolstarPartialCharges {
                             throw new Error('Invalid color theme');
                         }
 
+                        const typeId = this.getTypeId();
+                        if (!typeId) {
+                            throw new Error('Invalid type id');
+                        }
+
                         // switches to residue charge for certain representations
                         const showResidueChargeFor = ['cartoon', 'carbohydrate'];
                         const typeName = representation.cell.transform.params?.type?.name;
                         const showResidueCharge = typeName && showResidueChargeFor.includes(typeName);
-                        params = merge({}, params, { showResidueCharge });
+                        params = merge({}, params, { showResidueCharge, typeId });
 
                         const oldProps = representation.cell.transform.params;
                         const mergedProps = merge({}, oldProps, { colorTheme }, { colorTheme: { params } });
@@ -364,6 +371,14 @@ export default class MolstarPartialCharges {
         if (!model || !this.isTypeIdValid(model, typeId)) return;
         SbNcbrPartialChargesPropertyProvider.set(model, { typeId });
         await this.updateColor(SbNcbrPartialChargesColorThemeProvider.name, { typeId });
+    }
+
+    private getTypeId() {
+        const model = this.getModel();
+        if (!model) return;
+        const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model)?.typeId.defaultValue;
+        if (!typeId) throw new Error('No type id found.');
+        return typeId;
     }
 
     private getModel() {

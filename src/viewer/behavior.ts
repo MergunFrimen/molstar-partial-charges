@@ -36,7 +36,7 @@ export const SbNcbrPartialCharges = PluginBehavior.create<{ autoAttach: boolean;
                 const label =
                     this.ctx.managers.interactivity.props.granularity === 'residue' ? 'Residue charge' : 'Atom charge';
 
-                return `<strong>${label}: ${charge?.toFixed(4) || 'undefined'}</strong>`;
+                return `<strong>${label}: ${charge?.toFixed(4) || 'undefined'}</strong> | id: ${id} | type: ${typeId}`;
             },
             group: (label: LociLabel): string => (label as string).toString().replace(/Model [0-9]+/g, 'Models'),
             priority: 0,

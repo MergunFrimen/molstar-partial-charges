@@ -17,6 +17,7 @@ let charge = 0;
 const url_prefix = 'http://127.0.0.1:5500/test/output/';
 const examples = [
     '1c0q.cif.charges.cif',
+    '1alx.cif.charges.cif',
     '4wtv.cif.charges.cif',
     '2_4_dinitrophenol.charges.cif',
     '2_chlorophenol.charges.cif',
@@ -130,15 +131,16 @@ async function testLociLabels() {
         const label_atom_id = sourceData.data.db.atom_site.label_atom_id.value(last_index); // atom
         const label_alt_id = sourceData.data.db.atom_site.label_alt_id.value(last_index); // altloc
         const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
+        const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
 
         if (!data) {
             console.error('No data');
             return;
         }
         const { typeIdToAtomIdToCharge, typeIdToResidueToCharge, maxAbsoluteCharges } = data;
-        const atomCharge = typeIdToAtomIdToCharge.get(1)?.get(last_index + 1);
-        const residueCharge = typeIdToResidueToCharge.get(1)?.get(last_index + 1);
-        const maxCharges = maxAbsoluteCharges.get(1);
+        const atomCharge = typeIdToAtomIdToCharge.get(typeId)?.get(last_index + 1);
+        const residueCharge = typeIdToResidueToCharge.get(typeId)?.get(last_index + 1);
+        const maxCharges = maxAbsoluteCharges.get(typeId);
 
         console.log(
             last_index + 1,
@@ -148,7 +150,8 @@ async function testLociLabels() {
             label_atom_id,
             Number(atomCharge?.toPrecision(4)),
             Number(residueCharge?.toPrecision(4)),
-            Number(maxCharges?.toPrecision(4))
+            Number(maxCharges?.toPrecision(4)),
+            typeId
         );
 
         // input mmCIF file should not have altlocs
