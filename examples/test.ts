@@ -16,13 +16,15 @@ let charge = 0;
 
 const url_prefix = 'http://127.0.0.1:5500/test/output/';
 const examples = [
-    '1c0q.cif.charges.cif',
     '1alx.cif.charges.cif',
-    '4wtv.cif.charges.cif',
+    '1c0q.cif.charges.cif',
     '2_4_dinitrophenol.charges.cif',
     '2_chlorophenol.charges.cif',
     '3_chlorophenol.charges.cif',
+    '3c1p.cif.charges.cif',
+    '3wpc.cif.charges.cif',
     '4_nitrophenol.charges.cif',
+    '4wtv.cif.charges.cif',
     'm_cresol.charges.cif',
     'o_cresol.charges.cif',
     'propofol.charges.cif',

@@ -97,7 +97,6 @@ export default class MolstarPartialCharges {
             const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
             const maxCharge =
                 SbNcbrPartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteCharges.get(typeId);
-            console.log(typeId, maxCharge, SbNcbrPartialChargesPropertyProvider.get(model).value?.data);
             if (maxCharge === undefined) throw new Error('No charge found.');
             return maxCharge;
         },
