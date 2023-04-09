@@ -104,7 +104,7 @@ function getTypeIdToResidueIdToCharge(model: Model, typeIdToAtomIdToCharge: Char
             }
             for (let atomId = offsets[residueId - 1] + 1; atomId <= offsets[residueId]; ++atomId) {
                 if (!residueToCharge.has(typeId)) residueToCharge.set(typeId, new Map());
-                residueToCharge.get(typeId)?.set(atomId, charge);
+                residueToCharge.get(typeId)?.set(atomId, Number(charge.toFixed(4)));
             }
         }
     });
@@ -121,8 +121,9 @@ function getMaxAbsoluteCharges(
     const maxAbsoluteCharges: Map<number, number> = new Map();
 
     typeIdToCharge.forEach((idToCharge, typeId) => {
-        const min = Math.min(...Array.from(idToCharge.values()));
-        const max = Math.max(...Array.from(idToCharge.values()));
+        const charges = Array.from(idToCharge.values());
+        const min = Math.min(...charges);
+        const max = Math.max(...charges);
         const bound = Math.max(Math.abs(min), max);
         maxAbsoluteCharges.set(typeId, bound);
     });
@@ -156,8 +157,16 @@ function hasPartialChargesCategories(model: Model): boolean {
     );
 }
 
+function checkRowCounts(model: Model): boolean {
+    const sourceData = model.sourceData as MmcifFormat;
+    const atomCount = sourceData.data.frame.categories.atom_site.rowCount;
+    const chargesCount = sourceData.data.frame.categories.partial_atomic_charges.rowCount;
+    const typeIdCount = sourceData.data.frame.categories.partial_atomic_charges_meta.rowCount;
+    return chargesCount > 0 && chargesCount % atomCount === 0 && chargesCount === typeIdCount * atomCount;
+}
+
 export function isApplicable(model?: Model): boolean {
-    return !!model && model.sourceData.kind === 'mmCIF' && hasPartialChargesCategories(model);
+    return !!model && model.sourceData.kind === 'mmCIF' && hasPartialChargesCategories(model) && checkRowCounts(model);
 }
 
 export const SbNcbrPartialChargesPropertyProvider: CustomModelProperty.Provider<

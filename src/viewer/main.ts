@@ -29,8 +29,8 @@ export default class MolstarPartialCharges {
         const specs: PluginUISpec = {
             behaviors: [
                 ...defaultSpecs.behaviors,
-                PluginSpec.Behavior(SbNcbrPartialCharges),
-                PluginSpec.Behavior(MAQualityAssessment),
+                PluginSpec.Behavior(SbNcbrPartialCharges), // partial charges
+                PluginSpec.Behavior(MAQualityAssessment), // alphaFold
             ],
             components: {
                 ...defaultSpecs.components,
@@ -43,7 +43,7 @@ export default class MolstarPartialCharges {
                     showControls: false,
                     regionState: {
                         bottom: 'full',
-                        left: 'collapsed',
+                        left: 'full',
                         right: 'full',
                         top: 'full',
                     },
@@ -54,6 +54,7 @@ export default class MolstarPartialCharges {
         const root = document.getElementById(target);
         if (!root) throw new Error(`Element with ID '${target}' not found.`);
         const plugin = await createPluginUI(root, specs);
+
         return new MolstarPartialCharges(plugin);
     }
 
@@ -204,7 +205,7 @@ export default class MolstarPartialCharges {
             name: PhysicalSizeThemeProvider.name,
             params: {
                 ...PhysicalSizeThemeProvider.defaultValues,
-                scale: 1,
+                // scale: 1,
             },
         },
     };

@@ -17,7 +17,7 @@ export const PartialChargesThemeParams = {
     max: PD.Numeric(0, { min: 0 }),
     typeId: PD.Numeric(-1, undefined, { isHidden: true }),
     absolute: PD.Boolean(false, { isHidden: false }),
-    showResidueCharge: PD.Boolean(true, { isHidden: false }),
+    showResidueCharge: PD.Boolean(true, { isHidden: true }),
 };
 export type PartialChargesThemeParams = typeof PartialChargesThemeParams;
 

@@ -17,6 +17,7 @@ let charge = 0;
 const url_prefix = 'http://127.0.0.1:5500/test/output/';
 const examples = [
     '1c0q.cif.charges.cif',
+    '4wtv.cif.charges.cif',
     '2_4_dinitrophenol.charges.cif',
     '2_chlorophenol.charges.cif',
     '3_chlorophenol.charges.cif',
@@ -129,9 +130,10 @@ async function testLociLabels() {
             console.log('No data');
             return;
         }
-        const { typeIdToAtomIdToCharge, typeIdToResidueToCharge } = data;
+        const { typeIdToAtomIdToCharge, typeIdToResidueToCharge, maxAbsoluteCharges } = data;
         const atomCharge = typeIdToAtomIdToCharge.get(1)?.get(last_index + 1);
         const residueCharge = typeIdToResidueToCharge.get(1)?.get(last_index + 1);
+        const maxCharges = maxAbsoluteCharges.get(1);
 
         console.log(
             last_index + 1,
@@ -139,8 +141,9 @@ async function testLociLabels() {
             label_comp_id,
             label_seq_id,
             label_atom_id,
-            atomCharge,
-            Number(residueCharge?.toPrecision(4))
+            Number(atomCharge?.toPrecision(4)),
+            Number(residueCharge?.toPrecision(4)),
+            Number(maxCharges?.toPrecision(4))
         );
 
         // input mmCIF file should not have altlocs
@@ -159,7 +162,7 @@ async function load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
     } else {
         await molstar.type.default();
     }
-    let maxAbsoluteRelativeCharge = Number(molstar.charges.getRelativeCharge().toFixed(3));
+    let maxAbsoluteRelativeCharge = Number(molstar.charges.getRelativeCharge().toFixed(4));
     await updateSliderMax(maxAbsoluteRelativeCharge);
     await updateCharge(maxAbsoluteRelativeCharge);
     addOptionsToDropdown('charge-set-dropdown', molstar.charges.getMethodNames());
@@ -168,7 +171,7 @@ async function load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
 function switchOffCartoonView() {
     const view = document.getElementById('controls-view-default');
     if (!view) return false;
-    if (!molstar.type.isDefaultApplicable()) {
+    if (!molstar.type.isDefaultApplicable) {
         view.setAttribute('disabled', 'true');
         return true;
     } else {
@@ -182,9 +185,9 @@ async function updateCharge(chg: number) {
     const header = document.getElementById('controls-charge-header') as HTMLHeadingElement;
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!header || !slider) return;
-    charge = Number(chg.toFixed(3));
-    header.innerText = `Charge (${charge.toFixed(3)})`;
-    slider.value = `${charge.toFixed(3)}`;
+    charge = Number(chg.toFixed(4));
+    header.innerText = `Charge (${charge.toFixed(4)})`;
+    slider.value = `${charge.toFixed(4)}`;
     await molstar.color.absolute(charge);
 }
 
@@ -230,11 +233,11 @@ async function updateSliderMax(max: number) {
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!slider) return;
     const old_value = Number(slider.value);
-    slider.max = max.toFixed(3);
+    slider.max = max.toFixed(4);
     if (old_value > max) {
         await updateCharge(max);
     } else {
-        slider.value = old_value.toFixed(3);
+        slider.value = old_value.toFixed(4);
     }
 }
 
