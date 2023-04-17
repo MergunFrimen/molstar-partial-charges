@@ -9,6 +9,7 @@ import { BallAndStickRepresentationProvider } from 'molstar/lib/mol-repr/structu
 import { GaussianSurfaceRepresentationProvider } from 'molstar/lib/mol-repr/structure/representation/gaussian-surface';
 import { ElementSymbolColorThemeProvider } from 'molstar/lib/mol-theme/color/element-symbol';
 import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
+import { UniformSizeThemeProvider } from 'molstar/lib/mol-theme/size/uniform';
 import { PluginConfig } from 'molstar/lib/mol-plugin/config';
 import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
 import { AtomKey, Color, Representation3D, Size, Type } from './types';
@@ -194,10 +195,10 @@ export default class MolstarPartialCharges {
             },
         },
         sizeTheme: {
-            name: PhysicalSizeThemeProvider.name,
+            name: UniformSizeThemeProvider.name,
             params: {
-                ...PhysicalSizeThemeProvider.defaultValues,
-                scale: 1,
+                ...UniformSizeThemeProvider.defaultValues,
+                value: 1.8,
             },
         },
     };
