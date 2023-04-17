@@ -166,7 +166,7 @@ function checkRowCounts(model: Model): boolean {
 }
 
 export function isApplicable(model?: Model): boolean {
-    return !!model && model.sourceData.kind === 'mmCIF' && hasPartialChargesCategories(model) && checkRowCounts(model);
+    return !!model && model.sourceData.kind === 'mmCIF' && hasPartialChargesCategories(model);
 }
 
 export const SbNcbrPartialChargesPropertyProvider: CustomModelProperty.Provider<
