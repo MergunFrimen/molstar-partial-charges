@@ -59,8 +59,9 @@ export function PartialChargesColorTheme(
             return Colors.Error;
         }
 
-        const { typeIdToAtomIdToCharge, typeIdToResidueToCharge, maxAbsoluteCharges } = data;
         const { absolute, showResidueCharge } = props;
+        const { typeIdToAtomIdToCharge, typeIdToResidueToCharge, maxAbsoluteAtomCharges, maxAbsoluteResidueCharges } =
+            data;
 
         let id = -1;
         if (StructureElement.Location.is(location)) {
@@ -76,12 +77,23 @@ export function PartialChargesColorTheme(
             }
         }
 
-        const maxCharge = absolute ? props.maxAbsoluteCharge : maxAbsoluteCharges.get(typeId) || 0;
+        let maxCharge = 0;
+        if (absolute) {
+            maxCharge = props.maxAbsoluteCharge;
+        } else if (showResidueCharge) {
+            maxCharge = maxAbsoluteResidueCharges.get(typeId) || 0;
+        } else {
+            maxCharge = maxAbsoluteAtomCharges.get(typeId) || 0;
+        }
+
         const charge = showResidueCharge
             ? typeIdToResidueToCharge.get(typeId)?.get(id)
             : typeIdToAtomIdToCharge.get(typeId)?.get(id);
 
-        if (charge === undefined) return Colors.MissingCharge;
+        if (charge === undefined) {
+            console.warn('No charge found for id', id);
+            return Colors.MissingCharge;
+        }
 
         return getColor(charge, maxCharge);
     }

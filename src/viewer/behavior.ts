@@ -1,11 +1,10 @@
-import { OrderedSet } from 'molstar/lib/mol-data/int';
-import { Loci } from 'molstar/lib/mol-model/loci';
-import { StructureElement } from 'molstar/lib/mol-model/structure';
+import { StructureElement, StructureProperties } from 'molstar/lib/mol-model/structure';
 import { LociLabel, LociLabelProvider } from 'molstar/lib/mol-plugin-state/manager/loci-label';
 import { PluginBehavior } from 'molstar/lib/mol-plugin/behavior';
 import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
 import { SbNcbrPartialChargesColorThemeProvider } from './color';
 import { SbNcbrPartialChargesPropertyProvider } from './property';
+import { Loci } from 'molstar/lib/mol-model/loci';
 
 export const SbNcbrPartialCharges = PluginBehavior.create<{ autoAttach: boolean; showToolTip: boolean }>({
     name: 'sb-ncbr-partial-charges',
@@ -18,11 +17,10 @@ export const SbNcbrPartialCharges = PluginBehavior.create<{ autoAttach: boolean;
             label: (loci: Loci) => {
                 if (!StructureElement.Loci.is(loci)) return;
 
-                const { unit, indices } = loci.elements[0];
-                const elements = unit.elements;
-                const index = OrderedSet.start(indices);
-                const id = elements[index] + 1;
+                const loc = StructureElement.Loci.getFirstLocation(loci);
+                if (!loc) return;
 
+                const atomId = StructureProperties.atom.id(loc);
                 const model = loci.structure.model;
                 const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
                 if (data === undefined) return;
@@ -31,8 +29,8 @@ export const SbNcbrPartialCharges = PluginBehavior.create<{ autoAttach: boolean;
                 const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
                 const showResidueCharge = this.ctx.managers.interactivity.props.granularity === 'residue';
                 const charge = showResidueCharge
-                    ? typeIdToResidueToCharge.get(typeId)?.get(id)
-                    : typeIdToAtomIdToCharge.get(typeId)?.get(id);
+                    ? typeIdToResidueToCharge.get(typeId)?.get(atomId)
+                    : typeIdToAtomIdToCharge.get(typeId)?.get(atomId);
                 const label =
                     this.ctx.managers.interactivity.props.granularity === 'residue' ? 'Residue charge' : 'Atom charge';
 

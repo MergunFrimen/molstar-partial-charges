@@ -14,20 +14,96 @@ import { SbNcbrPartialChargesPropertyProvider } from '../src/viewer/property';
 let current_example = 0;
 let charge = 0;
 
-const url_prefix = 'http://127.0.0.1:5500/test/output/';
+const url_prefix = 'http://127.0.0.1:5501/test/output/';
 const examples = [
-    '1alx.cif.charges.cif',
-    '1c0q.cif.charges.cif',
-    '2_4_dinitrophenol.charges.cif',
-    '2_chlorophenol.charges.cif',
-    '3_chlorophenol.charges.cif',
-    '3c1p.cif.charges.cif',
-    '3wpc.cif.charges.cif',
-    '4_nitrophenol.charges.cif',
-    '4wtv.cif.charges.cif',
-    'm_cresol.charges.cif',
-    'o_cresol.charges.cif',
-    'propofol.charges.cif',
+    '10gs.fw2.cif',
+    '1a9l.fw2.cif',
+    '2bg9.fw2.cif',
+    '100d.fw2.cif',
+    '101m.fw2.cif',
+    '146d.fw2.cif',
+    '148l.fw2.cif',
+    '155884675.fw2.cif',
+    '16078.fw2.cif',
+    '1832.fw2.cif',
+    '1C0Q.fw2.cif',
+    '1a34.fw2.cif',
+    '1aa5.fw2.cif',
+    '1aga.fw2.cif',
+    '1alx.fw2.cif',
+    '1c0q.fw2.cif',
+    '1cp8.fw2.cif',
+    '1dey.fw2.cif',
+    '1ffz.fw2.cif',
+    '2519.fw2.cif',
+    '2_4_dinitrophenol.fw2.cif',
+    '2_chlorophenol.fw2.cif',
+    '2p7d.fw2.cif',
+    '3_chlorophenol.fw2.cif',
+    '3bj1.fw2.cif',
+    '3c1p.fw2.cif',
+    '3ciy.fw2.cif',
+    '3wpc.fw2.cif',
+    '4980.fw2.cif',
+    '4_nitrophenol.fw2.cif',
+    '4wtv.fw2.cif',
+    '5761.fw2.cif',
+    '5boq.fw2.cif',
+    '5c9l.fw2.cif',
+    '7sza.fw2.cif',
+    '7zgc.fw2.cif',
+    '8fuc.fw2.cif',
+    '8hc9.fw2.cif',
+    'm_cresol.fw2.cif',
+    'nsc_100000.fw2.cif',
+    'nsc_100013.fw2.cif',
+    'nsc_10002.fw2.cif',
+    'nsc_100029.fw2.cif',
+    'nsc_100032.fw2.cif',
+    'nsc_100035.fw2.cif',
+    'nsc_100036.fw2.cif',
+    'nsc_100044.fw2.cif',
+    'nsc_100046.fw2.cif',
+    'nsc_100049.fw2.cif',
+    'nsc_10005.fw2.cif',
+    'nsc_100053.fw2.cif',
+    'nsc_100054.fw2.cif',
+    'nsc_100058.fw2.cif',
+    'nsc_100059.fw2.cif',
+    'nsc_10006.fw2.cif',
+    'nsc_100060.fw2.cif',
+    'nsc_100062.fw2.cif',
+    'nsc_100063.fw2.cif',
+    'nsc_10007.fw2.cif',
+    'nsc_10008.fw2.cif',
+    'nsc_100109.fw2.cif',
+    'nsc_10011.fw2.cif',
+    'nsc_10012.fw2.cif',
+    'nsc_10013.fw2.cif',
+    'nsc_100133.fw2.cif',
+    'nsc_100135.fw2.cif',
+    'nsc_100137.fw2.cif',
+    'nsc_10014.fw2.cif',
+    'nsc_100143.fw2.cif',
+    'nsc_100146.fw2.cif',
+    'nsc_100147.fw2.cif',
+    'nsc_10015.fw2.cif',
+    'nsc_100152.fw2.cif',
+    'nsc_100154.fw2.cif',
+    'nsc_100163.fw2.cif',
+    'nsc_100166.fw2.cif',
+    'nsc_100168.fw2.cif',
+    'nsc_100169.fw2.cif',
+    'nsc_100176.fw2.cif',
+    'nsc_100178.fw2.cif',
+    'nsc_100181.fw2.cif',
+    'nsc_100184.fw2.cif',
+    'nsc_10019.fw2.cif',
+    'nsc_100192.fw2.cif',
+    'nsc_100201.fw2.cif',
+    'nsc_100202.fw2.cif',
+    'o_cresol.fw2.cif',
+    'propofol.fw2.cif',
 ];
 const default_structure_url = url_prefix + examples[current_example];
 
@@ -69,6 +145,7 @@ addControl('Relative range', async () => {
     const relativeCharge = molstar.charges.getRelativeCharge();
     await updateSliderMax(relativeCharge);
     await updateCharge(relativeCharge);
+    await molstar.color.relative();
 });
 addControl('Absolute range', async () => {
     const input = document.getElementById('max-charge') as HTMLInputElement;
@@ -103,7 +180,8 @@ addDropdown('charge-set-dropdown', [], async (value) => {
 });
 
 addHeader('Load');
-addControl('Next example', nextExample);
+addControl('Previous example', () => nextExample(current_example - 1));
+addControl('Next example', () => nextExample(current_example + 1));
 addDropdown('examples-dropdown', examples, async (value) => {
     current_example = examples.indexOf(value);
     await load(url_prefix + value, 'mmcif');
@@ -165,6 +243,7 @@ async function testLociLabels() {
 }
 
 async function load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
+    console.log(examples[current_example]);
     await molstar.load(url, format);
     const cartoonOff = switchOffCartoonView();
     if (cartoonOff) {
@@ -175,6 +254,7 @@ async function load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
     let maxAbsoluteRelativeCharge = Number(molstar.charges.getRelativeCharge().toFixed(4));
     await updateSliderMax(maxAbsoluteRelativeCharge);
     await updateCharge(maxAbsoluteRelativeCharge);
+    await molstar.color.relative();
 
     addOptionsToDropdown('charge-set-dropdown', molstar.charges.getMethodNames());
 }
@@ -252,8 +332,8 @@ async function updateSliderMax(max: number) {
     }
 }
 
-async function nextExample() {
-    current_example = (current_example + 1) % examples.length;
+async function nextExample(next: number) {
+    current_example = (next + examples.length) % examples.length;
     const select = document.getElementById('examples-dropdown') as HTMLSelectElement;
     if (!select) return;
     select.value = examples[current_example];
