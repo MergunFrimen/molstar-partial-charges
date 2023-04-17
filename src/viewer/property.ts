@@ -157,14 +157,6 @@ function hasPartialChargesCategories(model: Model): boolean {
     );
 }
 
-function checkRowCounts(model: Model): boolean {
-    const sourceData = model.sourceData as MmcifFormat;
-    const atomCount = sourceData.data.frame.categories.atom_site.rowCount;
-    const chargesCount = sourceData.data.frame.categories.partial_atomic_charges.rowCount;
-    const typeIdCount = sourceData.data.frame.categories.partial_atomic_charges_meta.rowCount;
-    return chargesCount > 0 && chargesCount % atomCount === 0 && chargesCount === typeIdCount * atomCount;
-}
-
 export function isApplicable(model?: Model): boolean {
     return !!model && model.sourceData.kind === 'mmCIF' && hasPartialChargesCategories(model);
 }
