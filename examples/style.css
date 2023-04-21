@@ -30,3 +30,8 @@
     width: 100%;
     display: block;
 }
+
+/* hide molstar model switching */
+.msp-traj-controls {
+    visibility: hidden;
+}

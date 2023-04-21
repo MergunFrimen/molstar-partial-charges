@@ -12,9 +12,9 @@ type ChargesData = {
     typeIdToMethod: Map<TypeId, string>;
     typeIdToAtomIdToCharge: Map<TypeId, IdToCharge>;
     typeIdToResidueToCharge: Map<TypeId, IdToCharge>;
-    maxAbsoluteCharges: IdToCharge;
     maxAbsoluteAtomCharges: IdToCharge;
     maxAbsoluteResidueCharges: IdToCharge;
+    maxAbsoluteAtomChargeAll: number;
 };
 type PartialCharges = PropertyWrapper<ChargesData | undefined>;
 
@@ -34,7 +34,7 @@ async function getData(model: Model): Promise<CustomProperty.Data<PartialCharges
     const typeIdToResidueToCharge = getTypeIdToResidueIdToCharge(model, typeIdToAtomIdToCharge);
     const maxAbsoluteAtomCharges = getMaxAbsoluteCharges(typeIdToAtomIdToCharge);
     const maxAbsoluteResidueCharges = getMaxAbsoluteCharges(typeIdToResidueToCharge);
-    const maxAbsoluteCharges = getMaxAbsoluteChargesAll(maxAbsoluteAtomCharges, maxAbsoluteResidueCharges);
+    const maxAbsoluteAtomChargeAll = getMaxAbsoluteAtomChargeAll(maxAbsoluteAtomCharges);
 
     return {
         value: {
@@ -45,7 +45,7 @@ async function getData(model: Model): Promise<CustomProperty.Data<PartialCharges
                 typeIdToResidueToCharge,
                 maxAbsoluteAtomCharges,
                 maxAbsoluteResidueCharges,
-                maxAbsoluteCharges,
+                maxAbsoluteAtomChargeAll,
             },
         },
     };
@@ -59,7 +59,10 @@ function getTypeIdToMethod(model: Model) {
     const typeIds = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('id')?.toIntArray();
     const methods = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('method')?.toStringArray();
 
-    if (!typeIds || !methods) return typeIdToMethod;
+    if (!typeIds || !methods) {
+        console.error('No partial atomic charges metadata found');
+        return typeIdToMethod;
+    }
 
     for (let i = 0; i < rowCount; ++i) {
         const typeId = typeIds[i];
@@ -131,20 +134,15 @@ function getMaxAbsoluteCharges(
     return maxAbsoluteCharges;
 }
 
-function getMaxAbsoluteChargesAll(
-    maxAbsoluteAtomCharges: ChargesData['maxAbsoluteAtomCharges'],
-    maxAbsoluteResidueCharges: ChargesData['maxAbsoluteResidueCharges']
-): ChargesData['maxAbsoluteCharges'] {
-    const maxAbsoluteCharges: Map<number, number> = new Map();
+function getMaxAbsoluteAtomChargeAll(maxAbsoluteAtomCharges: ChargesData['maxAbsoluteAtomCharges']): number {
+    let maxAbsoluteCharge = 0;
 
     maxAbsoluteAtomCharges.forEach((_, typeId) => {
-        const maxAtomCharge = maxAbsoluteAtomCharges.get(typeId) || 0;
-        const maxResidueCharge = maxAbsoluteResidueCharges.get(typeId) || 0;
-        const maxAll = Math.max(maxAtomCharge, maxResidueCharge);
-        maxAbsoluteCharges.set(typeId, maxAll);
+        const maxCharge = maxAbsoluteAtomCharges.get(typeId) || 0;
+        if (maxCharge > maxAbsoluteCharge) maxAbsoluteCharge = maxCharge;
     });
 
-    return maxAbsoluteCharges;
+    return maxAbsoluteCharge;
 }
 
 function hasPartialChargesCategories(model: Model): boolean {

@@ -89,16 +89,24 @@ export default class MolstarPartialCharges {
             }
             return methodNames;
         },
-        setTypeId: async (typeId: number) => {
-            await this.updateModelPropertyData(typeId);
-        },
-        getRelativeCharge: () => {
+        getTypeId: () => {
             const model = this.getModel();
             if (!model) throw new Error('No model loaded.');
-            const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
-            const maxCharge =
-                SbNcbrPartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteAtomCharges.get(typeId);
-            if (maxCharge === undefined) throw new Error('No charge found.');
+            const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model)?.typeId.defaultValue;
+            if (!typeId) throw new Error('No type id found.');
+            return typeId;
+        },
+        setTypeId: (typeId: number) => {
+            const model = this.getModel();
+            if (!model) throw new Error('No model loaded.');
+            if (!this.isTypeIdValid(model, typeId)) throw new Error(`Invalid type id ${typeId}`);
+            SbNcbrPartialChargesPropertyProvider.set(model, { typeId });
+        },
+        getMaxCharge: () => {
+            const model = this.getModel();
+            if (!model) throw new Error('No model loaded.');
+            const maxCharge = SbNcbrPartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteAtomChargeAll;
+            if (maxCharge === undefined) throw new Error('No max charge found for all charge sets.');
             return maxCharge;
         },
     };
@@ -313,7 +321,7 @@ export default class MolstarPartialCharges {
                             throw new Error('Invalid color theme');
                         }
 
-                        const typeId = this.getTypeId();
+                        const typeId = this.charges.getTypeId();
                         if (!typeId) {
                             throw new Error('Invalid type id');
                         }
@@ -364,21 +372,6 @@ export default class MolstarPartialCharges {
             p.targetParams.colorTheme = props;
             p.surroundingsParams.colorTheme = props;
         });
-    }
-
-    private async updateModelPropertyData(typeId: number) {
-        const model = this.getModel();
-        if (!model || !this.isTypeIdValid(model, typeId)) return;
-        SbNcbrPartialChargesPropertyProvider.set(model, { typeId });
-        await this.updateColor(SbNcbrPartialChargesColorThemeProvider.name, { typeId });
-    }
-
-    private getTypeId() {
-        const model = this.getModel();
-        if (!model) return;
-        const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model)?.typeId.defaultValue;
-        if (!typeId) throw new Error('No type id found.');
-        return typeId;
     }
 
     private getModel() {

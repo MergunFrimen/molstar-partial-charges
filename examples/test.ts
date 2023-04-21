@@ -16,10 +16,11 @@ let charge = 0;
 
 const url_prefix = 'http://127.0.0.1:5501/test/output/';
 const examples = [
-    '10gs.fw2.cif',
+    '1f16.fw2.cif',
     '1a9l.fw2.cif',
-    '2bg9.fw2.cif',
     '100d.fw2.cif',
+    '10gs.fw2.cif',
+    '2bg9.fw2.cif',
     '101m.fw2.cif',
     '146d.fw2.cif',
     '148l.fw2.cif',
@@ -134,37 +135,15 @@ addControl('Default\n(=Cartoon)', async () => await molstar.type.default(), 'con
 addControl('Surface', async () => await molstar.type.surface());
 addControl('Ball and stick', async () => await molstar.type.ballAndStick());
 
-addHeader('Color');
+addHeader('', 'controls-charge-header');
 addControl('AlphaFold', async () => await molstar.color.alphaFold());
 addControl('Default', async () => await molstar.color.default());
-addControl('Charges', async () => await molstar.color.relative());
-
-addHeader('', 'controls-charge-header');
-addHeader('Set charge range');
-addControl('Relative range', async () => {
-    const relativeCharge = molstar.charges.getRelativeCharge();
-    await updateSliderMax(relativeCharge);
-    await updateCharge(relativeCharge);
-    await molstar.color.relative();
+addControl('Relative', async () => await molstar.color.relative());
+addControl('Reset', async () => {
+    const value = molstar.charges.getMaxCharge();
+    await updateSliderMax(value);
 });
-addControl('Absolute range', async () => {
-    const input = document.getElementById('max-charge') as HTMLInputElement;
-    if (!input) return;
-    const value = input.value;
-    const placeholder = input.placeholder;
-    const defaultValue = !isNaN(Number(placeholder)) ? Number(placeholder) : 1;
-    const parsed = value !== '' && !isNaN(Number(value)) ? Number(value) : defaultValue;
-    await updateSliderMax(parsed);
-});
-addInput('max-charge', '1.0');
-addControl('Absolute (+0.1)', async () => {
-    await updateSliderMax(charge + 0.1);
-    await updateCharge(charge + 0.1);
-});
-addControl('Absolute (-0.1)', async () => {
-    await updateCharge(charge - 0.1);
-});
-addSlider('charge-slider', 0, 1, 0.001, async () => {
+addSlider('charge-slider', 0, 1, 0.01, async () => {
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!slider) return;
     const chg = Number(slider.value);
@@ -173,10 +152,11 @@ addSlider('charge-slider', 0, 1, 0.001, async () => {
 
 addHeader('Change charge set');
 addDropdown('charge-set-dropdown', [], async (value) => {
-    await molstar.charges.setTypeId(Number(value));
-    const relativeCharge = molstar.charges.getRelativeCharge();
-    await updateSliderMax(relativeCharge);
-    await updateCharge(relativeCharge);
+    if (isNaN(Number(value))) return;
+    molstar.charges.setTypeId(Number(value));
+    const typeId = molstar.charges.getTypeId();
+    console.assert(typeId === Number(value));
+    molstar.color.relative();
 });
 
 addHeader('Load');
@@ -217,7 +197,7 @@ async function testLociLabels() {
             console.error('No data');
             return;
         }
-        const { typeIdToAtomIdToCharge, typeIdToResidueToCharge, maxAbsoluteCharges } = data;
+        const { typeIdToAtomIdToCharge, typeIdToResidueToCharge, maxAbsoluteAtomChargeAll: maxAbsoluteCharges } = data;
         const atomCharge = typeIdToAtomIdToCharge.get(typeId)?.get(last_index + 1);
         const residueCharge = typeIdToResidueToCharge.get(typeId)?.get(last_index + 1);
         const maxCharges = maxAbsoluteCharges.get(typeId);
@@ -243,7 +223,6 @@ async function testLociLabels() {
 }
 
 async function load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
-    console.log(examples[current_example]);
     await molstar.load(url, format);
     const cartoonOff = switchOffCartoonView();
     if (cartoonOff) {
@@ -251,9 +230,10 @@ async function load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
     } else {
         await molstar.type.default();
     }
-    let maxAbsoluteRelativeCharge = Number(molstar.charges.getRelativeCharge().toFixed(4));
-    await updateSliderMax(maxAbsoluteRelativeCharge);
-    await updateCharge(maxAbsoluteRelativeCharge);
+    const typeId = molstar.charges.getTypeId();
+    const relativeCharge = Number(molstar.charges.getMaxCharge().toFixed(4));
+    await updateSliderMax(relativeCharge);
+    await updateCharge(relativeCharge);
     await molstar.color.relative();
 
     addOptionsToDropdown('charge-set-dropdown', molstar.charges.getMethodNames());
@@ -271,13 +251,19 @@ function switchOffCartoonView() {
     }
 }
 
-async function updateCharge(chg: number) {
-    if (isNaN(chg)) return;
+function updateChargeTitle(chg: number) {
     const header = document.getElementById('controls-charge-header') as HTMLHeadingElement;
-    const slider = document.getElementById('charge-slider') as HTMLInputElement;
-    if (!header || !slider) return;
+    if (!header || isNaN(chg)) return;
     charge = Number(chg.toFixed(4));
     header.innerText = `Charge (${charge.toFixed(4)})`;
+}
+
+async function updateCharge(chg: number) {
+    const slider = document.getElementById('charge-slider') as HTMLInputElement;
+    if (!slider) return;
+    if (isNaN(chg)) return;
+    charge = Number(chg.toFixed(4));
+    updateChargeTitle(charge);
     slider.value = `${charge.toFixed(4)}`;
     await molstar.color.absolute(charge);
 }
@@ -323,13 +309,9 @@ function addSlider(id: string, min: number, max: number, step: number, action) {
 async function updateSliderMax(max: number) {
     const slider = document.getElementById('charge-slider') as HTMLInputElement;
     if (!slider) return;
-    const old_value = Number(slider.value);
     slider.max = max.toFixed(4);
-    if (old_value > max) {
-        await updateCharge(max);
-    } else {
-        slider.value = old_value.toFixed(4);
-    }
+    slider.value = max.toFixed(4);
+    updateChargeTitle(max);
 }
 
 async function nextExample(next: number) {
