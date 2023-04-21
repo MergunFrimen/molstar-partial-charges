@@ -13,9 +13,9 @@ import { UniformSizeThemeProvider } from 'molstar/lib/mol-theme/size/uniform';
 import { PluginConfig } from 'molstar/lib/mol-plugin/config';
 import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
 import { AtomKey, Color, Representation3D, Size, Type } from './types';
-import { SbNcbrPartialCharges } from './behavior';
-import { SbNcbrPartialChargesPropertyProvider } from './property';
-import { SbNcbrPartialChargesColorThemeProvider } from './color';
+import SbNcbrPartialCharges from './extension/index';
+import { SbNcbrPartialChargesPropertyProvider } from './extension/property';
+import { SbNcbrPartialChargesColorThemeProvider } from './extension/color';
 import { MAQualityAssessment } from 'molstar/lib/extensions/model-archive/quality-assessment/behavior';
 import { PLDDTConfidenceColorThemeProvider } from 'molstar/lib/extensions/model-archive/quality-assessment/color/plddt';
 import merge from 'lodash.merge';
@@ -384,3 +384,11 @@ export default class MolstarPartialCharges {
         return typeIds?.includes(typeId);
     }
 }
+
+declare global {
+    interface Window {
+        MolstarPartialCharges: typeof MolstarPartialCharges;
+    }
+}
+
+window.MolstarPartialCharges = MolstarPartialCharges;

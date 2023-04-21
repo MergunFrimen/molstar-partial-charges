@@ -1,8 +1,14 @@
 {
     "compilerOptions": {
+        "jsx": "react",
         "target": "ES5",
         "useDefineForClassFields": true,
-        "lib": ["ES6", "DOM", "ESNext.AsyncIterable", "ES2016"],
+        "lib": [
+            "ES6",
+            "DOM",
+            "ESNext.AsyncIterable",
+            "ES2016"
+        ],
         "skipLibCheck": true,
         "esModuleInterop": true,
         "strict": true,
@@ -30,5 +36,7 @@
         "outDir": "dist",
         "rootDir": "src"
     },
-    "include": ["src/**/*"]
+    "include": [
+        "src/**/*"
+    ]
 }
