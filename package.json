@@ -27,7 +27,7 @@
             "require": "./dist/molstar.umd.js"
         }
     },
-    "types": "./dist/index.d.ts",
+    "types": "./dist/viewer.d.ts",
     "files": [
         "dist/"
     ],

@@ -13,7 +13,7 @@ export default defineConfig({
         target: 'es2015',
         lib: {
             name: 'MolstarPartialCharges',
-            entry: resolve(__dirname, 'src/index.ts'),
+            entry: resolve(__dirname, 'src/viewer.ts'),
             formats: ['umd', 'es'],
             fileName: (format) => `molstar.${format}.js`,
         },
