@@ -11,7 +11,7 @@ import { SbNcbrPartialChargesPropertyProvider } from '../src/extension/property'
 let current_example = 0;
 let charge = 0;
 
-const url_prefix = 'http://127.0.0.1:5501/test/output/';
+const url_prefix = 'http://127.0.0.1:5501/examples/test/';
 const examples = [
     '1a9l.fw2.cif',
     '1f16.fw2.cif',
