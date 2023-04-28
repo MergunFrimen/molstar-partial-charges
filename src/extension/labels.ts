@@ -13,6 +13,11 @@ export function SbNcbrPartialChargesLociLabelProvider(ctx: PluginContext): LociL
             const loc = StructureElement.Loci.getFirstLocation(loci);
             if (!loc) return;
 
+            const granularity = ctx.managers.interactivity.props.granularity;
+            if (granularity !== 'element' && granularity !== 'residue') {
+                return;
+            }
+
             const atomId = StructureProperties.atom.id(loc);
             const model = loci.structure.model;
             const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
@@ -20,11 +25,11 @@ export function SbNcbrPartialChargesLociLabelProvider(ctx: PluginContext): LociL
             const { typeIdToAtomIdToCharge, typeIdToResidueToCharge } = data;
 
             const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
-            const showResidueCharge = ctx.managers.interactivity.props.granularity === 'residue';
+            const showResidueCharge = granularity === 'residue';
             const charge = showResidueCharge
                 ? typeIdToResidueToCharge.get(typeId)?.get(atomId)
                 : typeIdToAtomIdToCharge.get(typeId)?.get(atomId);
-            const label = ctx.managers.interactivity.props.granularity === 'residue' ? 'Residue charge' : 'Atom charge';
+            const label = granularity === 'residue' ? 'Residue charge' : 'Atom charge';
 
             return `<strong>${label}: ${charge?.toFixed(4) || 'undefined'}</strong>`;
         },
