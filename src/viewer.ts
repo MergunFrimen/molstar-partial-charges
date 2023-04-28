@@ -204,10 +204,10 @@ export default class MolstarPartialCharges {
             },
         },
         sizeTheme: {
-            name: UniformSizeThemeProvider.name,
+            name: PhysicalSizeThemeProvider.name,
             params: {
-                ...UniformSizeThemeProvider.defaultValues,
-                value: 1.8,
+                ...PhysicalSizeThemeProvider.defaultValues,
+                scale: 1,
             },
         },
     };
