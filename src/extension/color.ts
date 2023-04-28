@@ -53,6 +53,9 @@ export function PartialChargesColorTheme(
     const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
     const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
 
+    // forces coloring updates
+    props.typeId = typeId;
+
     function color(location: Location): Color {
         if (!data) {
             console.error('No partial charges data found');
@@ -104,6 +107,7 @@ export function PartialChargesColorTheme(
         color,
         props,
         description: 'Assign colors to atoms and residues based on their partial charge.',
+        preferSmoothing: true,
     };
 }
 
