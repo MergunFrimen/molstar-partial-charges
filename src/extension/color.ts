@@ -109,7 +109,7 @@ export function PartialChargesColorTheme(
         color,
         props,
         description: 'Color atoms and residues based on their partial charge.',
-        preferSmoothing: true,
+        preferSmoothing: false,
     };
 }
 
