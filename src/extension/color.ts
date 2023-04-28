@@ -14,10 +14,12 @@ const Colors = {
 };
 
 export const PartialChargesThemeParams = {
-    maxAbsoluteCharge: PD.Numeric(0, { min: 0, max: 5, step: 0.01 }),
-    typeId: PD.Numeric(1, undefined, { isHidden: true }),
-    absolute: PD.Boolean(false, { isHidden: false }),
+    maxAbsoluteCharge: PD.Numeric(0, undefined, {
+        label: 'Charge range',
+    }),
+    absolute: PD.Boolean(false, { isHidden: false, label: 'Use range' }),
     showResidueCharge: PD.Boolean(true, { isHidden: false }),
+    typeId: PD.Numeric(1, undefined, { isHidden: true }),
 };
 export type PartialChargesThemeParams = typeof PartialChargesThemeParams;
 
