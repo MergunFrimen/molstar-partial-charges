@@ -21,6 +21,7 @@ import { PLDDTConfidenceColorThemeProvider } from 'molstar/lib/extensions/model-
 import merge from 'lodash.merge';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
 import { Script } from 'molstar/lib/mol-script/script';
+import { SbNcbrPartialChargesPreset } from './extension/preset';
 
 export default class MolstarPartialCharges {
     constructor(public plugin: PluginUIContext) {}
@@ -37,7 +38,11 @@ export default class MolstarPartialCharges {
                 ...defaultSpecs.components,
                 remoteState: 'none',
             },
-            config: [[PluginConfig.Viewport.ShowAnimation, false]],
+            config: [
+                [PluginConfig.Viewport.ShowAnimation, false],
+                [PluginConfig.Structure.DefaultRepresentationPreset, SbNcbrPartialChargesPreset.id],
+            ],
+
             layout: {
                 initial: {
                     isExpanded: false,

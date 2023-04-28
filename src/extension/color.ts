@@ -108,7 +108,7 @@ export function PartialChargesColorTheme(
         granularity: 'group',
         color,
         props,
-        description: 'Assign colors to atoms and residues based on their partial charge.',
+        description: 'Color atoms and residues based on their partial charge.',
         preferSmoothing: true,
     };
 }
