@@ -18,10 +18,29 @@ type ChargesData = {
 };
 type PartialCharges = PropertyWrapper<ChargesData | undefined>;
 
-const PartialChargesPropertyParams = {
-    typeId: PD.Numeric(1),
+let updatedParams = false;
+let PartialChargesPropertyParams = {
+    typeId: PD.Select<number>(0, [[0, '0']]),
 };
 type PartialChargesPropertyParams = typeof PartialChargesPropertyParams;
+let defaultPartialChargesPropertyParams = PD.clone(PartialChargesPropertyParams);
+
+function getParams(model: Model) {
+    // This is a hack for setting the option values for the dropdown menu
+    if (!updatedParams) {
+        const typeIdToMethod = getTypeIdToMethod(model);
+        const options = Array.from(typeIdToMethod.entries()).map(
+            ([typeId, method]) => [typeId, method] as [number, string]
+        );
+        PartialChargesPropertyParams = {
+            typeId: PD.Select<number>(1, options),
+        };
+        defaultPartialChargesPropertyParams = PD.clone(PartialChargesPropertyParams);
+        updatedParams = true;
+    }
+
+    return PartialChargesPropertyParams;
+}
 
 async function getData(model: Model): Promise<CustomProperty.Data<PartialCharges>> {
     await Promise.resolve();
@@ -60,7 +79,6 @@ function getTypeIdToMethod(model: Model) {
     const methods = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('method')?.toStringArray();
 
     if (!typeIds || !methods) {
-        console.error('No partial atomic charges metadata found');
         return typeIdToMethod;
     }
 
@@ -168,8 +186,8 @@ export const SbNcbrPartialChargesPropertyProvider: CustomModelProperty.Provider<
         name: 'sb-ncbr-property-provider',
     }),
     type: 'static',
-    defaultParams: PartialChargesPropertyParams,
-    getParams: () => PartialChargesPropertyParams,
+    defaultParams: defaultPartialChargesPropertyParams,
+    getParams: (data: Model) => getParams(data),
     isApplicable: (model: Model) => isApplicable(model),
     obtain: (_ctx: CustomProperty.Context, model: Model) => getData(model),
 });
