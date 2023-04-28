@@ -5,7 +5,7 @@ import { SbNcbrPartialChargesColorThemeProvider } from './color';
 import { SbNcbrPartialChargesPropertyProvider } from './property';
 import { SbNcbrPartialChargesLociLabelProvider } from './labels';
 
-const SbNcbrPartialCharges = PluginBehavior.create<{ autoAttach: boolean; showToolTip: boolean }>({
+export const SbNcbrPartialCharges = PluginBehavior.create<{ autoAttach: boolean; showToolTip: boolean }>({
     name: 'sb-ncbr-partial-charges',
     category: 'misc',
     display: {
@@ -33,5 +33,3 @@ const SbNcbrPartialCharges = PluginBehavior.create<{ autoAttach: boolean; showTo
         showToolTip: PD.Boolean(true),
     }),
 });
-
-export default SbNcbrPartialCharges;
