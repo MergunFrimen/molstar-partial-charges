@@ -25,7 +25,10 @@ export const SbNcbrPartialChargesPreset = StructureRepresentationPresetProvider(
         const colorTheme = SbNcbrPartialChargesColorThemeProvider.name;
         return await PresetStructureRepresentations.auto.apply(
             ref,
-            { ...params, theme: { globalName: colorTheme, focus: { name: colorTheme } } },
+            {
+                ...params,
+                theme: { globalName: colorTheme, focus: { name: colorTheme, params: { showResidueCharge: false } } },
+            },
             plugin
         );
     },
