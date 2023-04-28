@@ -3,6 +3,7 @@ import MolstarPartialCharges from '../src/viewer';
 import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
 import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
 import { SbNcbrPartialChargesPropertyProvider } from '../src/extension/property';
+import { TargetWebApp } from '../src/types';
 
 /**
  * Example use of the plugin wrapper
@@ -119,7 +120,7 @@ window.molstar = molstar;
 
 // Initialize Mol* and load the default structure
 (async () => {
-    await load(default_structure_url, 'mmcif');
+    await load(default_structure_url, 'mmcif', 'ACC2');
 })().then(
     () => {},
     (e) => console.error('Molstar Partial Charges initialization failed', e)
@@ -180,8 +181,9 @@ addControl('Previous example', () => nextExample(current_example - 1));
 addControl('Next example', () => nextExample(current_example + 1));
 addDropdown('examples-dropdown', examples, async (value) => {
     current_example = examples.indexOf(value);
-    await load(url_prefix + value, 'mmcif');
+    await load(url_prefix + value, 'mmcif', 'ACC2');
 });
+addControl('Wrong structure', async () => await loadWrongStructure());
 
 let last_index = -1;
 let stop: boolean = true;
@@ -191,8 +193,15 @@ addControl('Test loci labels', async () => {
     testLociLabels();
 });
 
-async function load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
-    await molstar.load(url, format);
+async function loadWrongStructure() {
+    await molstar.load(url_prefix + 'Q55GB6_added_H.pdb', 'pdb', 'AlphaCharges');
+    await molstar.color.default();
+    await molstar.type.ballAndStick();
+    await molstar.visual.focus({ labelCompId: 'GLN', labelAtomId: 'CD', labelSeqId: 33 });
+}
+
+async function load(url: string, format: BuiltInTrajectoryFormat = 'mmcif', target: TargetWebApp = 'ACC2') {
+    await molstar.load(url, format, target);
     const cartoonOff = switchOffCartoonView();
     if (cartoonOff) {
         await molstar.type.ballAndStick();
@@ -281,7 +290,7 @@ async function nextExample(next: number) {
     const select = document.getElementById('examples-dropdown') as HTMLSelectElement;
     if (!select) return;
     select.value = examples[current_example];
-    await load(url_prefix + `${examples[current_example % examples.length]}`);
+    await load(url_prefix + `${examples[current_example % examples.length]}`, 'mmcif', 'ACC2');
 }
 
 function addDropdown(id: string, options: string[], action: (value: string) => any) {

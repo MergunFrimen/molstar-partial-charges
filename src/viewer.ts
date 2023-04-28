@@ -12,7 +12,7 @@ import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
 import { UniformSizeThemeProvider } from 'molstar/lib/mol-theme/size/uniform';
 import { PluginConfig } from 'molstar/lib/mol-plugin/config';
 import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
-import { AtomKey, Color, Representation3D, Size, Type } from './types';
+import { AtomKey, Color, Representation3D, Size, TargetWebApp, Type } from './types';
 import { SbNcbrPartialCharges } from './extension/behavior';
 import { SbNcbrPartialChargesPropertyProvider } from './extension/property';
 import { SbNcbrPartialChargesColorThemeProvider } from './extension/color';
@@ -60,7 +60,7 @@ export default class MolstarPartialCharges {
         return new MolstarPartialCharges(plugin);
     }
 
-    async load(url: string, format: BuiltInTrajectoryFormat = 'mmcif') {
+    async load(url: string, format: BuiltInTrajectoryFormat = 'mmcif', target: TargetWebApp = 'ACC2') {
         await this.plugin.clear();
 
         const data = await this.plugin.builders.data.download({ url }, { state: { isGhost: true } });
@@ -70,7 +70,7 @@ export default class MolstarPartialCharges {
             representationPreset: 'auto',
         });
 
-        await this.setInitialRepresentationState();
+        await this.setInitialRepresentationState(target);
 
         if (format === 'mmcif') {
             this.sanityCheck();
@@ -229,14 +229,14 @@ export default class MolstarPartialCharges {
             ...PLDDTConfidenceColorThemeProvider.defaultValues,
         },
     };
-    // private readonly physicalSizeProps: Size = {
-    //     name: PhysicalSizeThemeProvider.name,
-    //     params: {
-    //         ...PhysicalSizeThemeProvider.defaultValues,
-    //     },
-    // };
+    private readonly physicalSizeProps: Size = {
+        name: PhysicalSizeThemeProvider.name,
+        params: {
+            ...PhysicalSizeThemeProvider.defaultValues,
+        },
+    };
 
-    private async setInitialRepresentationState() {
+    private async setInitialRepresentationState(target: TargetWebApp) {
         this.defaultProps.clear();
         await this.plugin.dataTransaction(() => {
             for (const structure of this.plugin.managers.structure.hierarchy.current.structures) {
@@ -248,7 +248,7 @@ export default class MolstarPartialCharges {
                         this.defaultProps.set(representation.cell.transform.ref, {
                             type: type as Type,
                             colorTheme: params.colorTheme as Color,
-                            sizeTheme: params.sizeTheme as Size,
+                            sizeTheme: target === 'ACC2' ? (params.sizeTheme as Size) : this.physicalSizeProps,
                         });
                     }
                 }

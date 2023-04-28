@@ -26,3 +26,5 @@ export type AtomKey = {
     labelSeqId: number;
     labelAtomId: string;
 };
+
+export type TargetWebApp = 'AlphaCharges' | 'ACC2';
