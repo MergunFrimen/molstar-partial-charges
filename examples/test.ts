@@ -13,6 +13,7 @@ let charge = 0;
 
 const url_prefix = 'http://127.0.0.1:5501/examples/test/';
 const examples = [
+    '148l.fw2.cif',
     '1a9l.fw2.cif',
     '1f16.fw2.cif',
     '100d.fw2.cif',
@@ -20,7 +21,6 @@ const examples = [
     '2bg9.fw2.cif',
     '101m.fw2.cif',
     '146d.fw2.cif',
-    '148l.fw2.cif',
     '155884675.fw2.cif',
     '16078.fw2.cif',
     '1832.fw2.cif',
