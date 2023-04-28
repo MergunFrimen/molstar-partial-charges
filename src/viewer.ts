@@ -321,16 +321,11 @@ export default class MolstarPartialCharges {
                             throw new Error('Invalid color theme');
                         }
 
-                        const typeId = this.charges.getTypeId();
-                        if (!typeId) {
-                            throw new Error('Invalid type id');
-                        }
-
                         // switches to residue charge for certain representations
                         const showResidueChargeFor = ['cartoon', 'carbohydrate'];
                         const typeName = representation.cell.transform.params?.type?.name;
                         const showResidueCharge = typeName && showResidueChargeFor.includes(typeName);
-                        params = merge({}, params, { showResidueCharge, typeId });
+                        params = merge({}, params, { showResidueCharge });
 
                         const oldProps = representation.cell.transform.params;
                         const mergedProps = merge({}, oldProps, { colorTheme }, { colorTheme: { params } });

@@ -136,7 +136,7 @@ addControl('Surface', async () => await molstar.type.surface());
 addControl('Ball and stick', async () => await molstar.type.ballAndStick());
 
 addHeader('', 'controls-charge-header');
-// addControl('AlphaFold', async () => await molstar.color.alphaFold());
+addControl('AlphaFold', async () => await molstar.color.alphaFold());
 addControl('Default', async () => {
     await molstar.color.default();
     color = 'default';
