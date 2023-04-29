@@ -28,3 +28,8 @@ export type AtomKey = {
 };
 
 export type TargetWebApp = 'AlphaCharges' | 'ACC2';
+
+export type Extensions = {
+    MAQualityAssessment?: boolean;
+    SbNcbrPartialCharges?: boolean;
+};

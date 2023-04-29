@@ -106,7 +106,7 @@ const examples = [
 ];
 const default_structure_url = url_prefix + examples[current_example];
 
-const molstar = await MolstarPartialCharges.create('app');
+const molstar = await MolstarPartialCharges.create('app', { MAQualityAssessment: true, SbNcbrPartialCharges: true });
 
 let color = 'relative';
 

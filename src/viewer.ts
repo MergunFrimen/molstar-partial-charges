@@ -11,27 +11,23 @@ import { ElementSymbolColorThemeProvider } from 'molstar/lib/mol-theme/color/ele
 import { PhysicalSizeThemeProvider } from 'molstar/lib/mol-theme/size/physical';
 import { PluginConfig } from 'molstar/lib/mol-plugin/config';
 import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
-import { AtomKey, Color, Representation3D, Size, TargetWebApp, Type } from './types';
+import { AtomKey, Color, Extensions, Representation3D, Size, TargetWebApp, Type } from './types';
 import { SbNcbrPartialCharges } from './extension/behavior';
 import { SbNcbrPartialChargesPropertyProvider } from './extension/property';
 import { SbNcbrPartialChargesColorThemeProvider } from './extension/color';
 import { MAQualityAssessment } from 'molstar/lib/extensions/model-archive/quality-assessment/behavior';
 import { PLDDTConfidenceColorThemeProvider } from 'molstar/lib/extensions/model-archive/quality-assessment/color/plddt';
+import { Script } from 'molstar/lib/mol-script/script';
 import merge from 'lodash.merge';
 import 'molstar/lib/mol-plugin-ui/skin/light.scss';
-import { Script } from 'molstar/lib/mol-script/script';
 
 export default class MolstarPartialCharges {
     constructor(public plugin: PluginUIContext) {}
 
-    static async create(target: string) {
+    static async create(target: string, extensions: Extensions = { SbNcbrPartialCharges: true }) {
         const defaultSpecs = DefaultPluginUISpec();
         const specs: PluginUISpec = {
-            behaviors: [
-                ...defaultSpecs.behaviors,
-                PluginSpec.Behavior(SbNcbrPartialCharges), // partial charges
-                PluginSpec.Behavior(MAQualityAssessment), // alphaFold
-            ],
+            behaviors: [...defaultSpecs.behaviors],
             components: {
                 ...defaultSpecs.components,
                 remoteState: 'none',
@@ -52,6 +48,14 @@ export default class MolstarPartialCharges {
             },
         };
 
+        // add requested extensions
+        if (extensions.SbNcbrPartialCharges) {
+            specs.behaviors.push(PluginSpec.Behavior(SbNcbrPartialCharges));
+        }
+        if (extensions.MAQualityAssessment) {
+            specs.behaviors.push(PluginSpec.Behavior(MAQualityAssessment));
+        }
+
         const root = document.getElementById(target);
         if (!root) throw new Error(`Element with ID '${target}' not found.`);
         const plugin = await createPluginUI(root, specs);
@@ -59,7 +63,7 @@ export default class MolstarPartialCharges {
         return new MolstarPartialCharges(plugin);
     }
 
-    async load(url: string, format: BuiltInTrajectoryFormat = 'mmcif', target: TargetWebApp = 'ACC2') {
+    async load(url: string, format: BuiltInTrajectoryFormat = 'mmcif', targetWebApp: TargetWebApp = 'ACC2') {
         await this.plugin.clear();
 
         const data = await this.plugin.builders.data.download({ url }, { state: { isGhost: true } });
@@ -69,7 +73,7 @@ export default class MolstarPartialCharges {
             representationPreset: 'auto',
         });
 
-        await this.setInitialRepresentationState(target);
+        await this.setInitialRepresentationState(targetWebApp);
 
         if (format === 'mmcif') {
             this.sanityCheck();
@@ -235,7 +239,7 @@ export default class MolstarPartialCharges {
         },
     };
 
-    private async setInitialRepresentationState(target: TargetWebApp) {
+    private async setInitialRepresentationState(targetWebApp: TargetWebApp) {
         this.defaultProps.clear();
         await this.plugin.dataTransaction(() => {
             for (const structure of this.plugin.managers.structure.hierarchy.current.structures) {
@@ -247,7 +251,7 @@ export default class MolstarPartialCharges {
                         this.defaultProps.set(representation.cell.transform.ref, {
                             type: type as Type,
                             colorTheme: params.colorTheme as Color,
-                            sizeTheme: target === 'ACC2' ? (params.sizeTheme as Size) : this.physicalSizeProps,
+                            sizeTheme: targetWebApp === 'ACC2' ? (params.sizeTheme as Size) : this.physicalSizeProps,
                         });
                     }
                 }
