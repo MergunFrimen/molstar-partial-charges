@@ -250,8 +250,12 @@ export default class MolstarPartialCharges {
                         const { type } = params;
                         this.defaultProps.set(representation.cell.transform.ref, {
                             type: type as Type,
-                            colorTheme: params.colorTheme as Color,
-                            sizeTheme: targetWebApp === 'ACC2' ? (params.sizeTheme as Size) : this.physicalSizeProps,
+                            colorTheme:
+                                targetWebApp === 'AlphaCharges'
+                                    ? this.elementSymbolColorProps
+                                    : (params.colorTheme as Color),
+                            sizeTheme:
+                                targetWebApp === 'AlphaCharges' ? this.physicalSizeProps : (params.sizeTheme as Size),
                         });
                     }
                 }
