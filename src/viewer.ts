@@ -356,7 +356,7 @@ export default class MolstarPartialCharges {
         if (!model) throw new Error('No model loaded.');
         const sourceData = model.sourceData as MmcifFormat;
         const atomCount = model.atomicHierarchy.atoms._rowCount;
-        const chargesCount = sourceData.data.frame.categories.partial_atomic_charges.rowCount;
+        const chargesCount = sourceData.data.frame.categories.sb_ncbr_partial_atomic_charges.rowCount;
         if (chargesCount > 0 && chargesCount % atomCount !== 0)
             throw new Error(`Atom count (${atomCount}) does not match charge count (${chargesCount}).`);
     }
@@ -385,7 +385,9 @@ export default class MolstarPartialCharges {
 
     private isTypeIdValid(model: Model, typeId: number) {
         const sourceData = model.sourceData as MmcifFormat;
-        const typeIds = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('id')?.toIntArray();
+        const typeIds = sourceData.data.frame.categories.sb_ncbr_partial_atomic_charges_meta
+            .getField('id')
+            ?.toIntArray();
         return typeIds?.includes(typeId);
     }
 }

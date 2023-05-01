@@ -7263,15 +7263,15 @@ _pdbx_entity_nonpoly.comp_id
 5 water HOH
 
 loop_
-_partial_atomic_charges_meta.id
-_partial_atomic_charges_meta.type
-_partial_atomic_charges_meta.method
+_sb_ncbr_partial_atomic_charges_meta.id
+_sb_ncbr_partial_atomic_charges_meta.type
+_sb_ncbr_partial_atomic_charges_meta.method
 1 empirical 'EQeq/None'
 
 loop_
-_partial_atomic_charges.type_id
-_partial_atomic_charges.atom_id
-_partial_atomic_charges.charge
+_sb_ncbr_partial_atomic_charges.type_id
+_sb_ncbr_partial_atomic_charges.atom_id
+_sb_ncbr_partial_atomic_charges.charge
 1 1 -0.0426
 1 2  0.0174
 1 3  0.2179

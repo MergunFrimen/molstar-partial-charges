@@ -67,9 +67,9 @@ function getTypeIdToMethod(model: Model) {
     const typeIdToMethod: ChargesData['typeIdToMethod'] = new Map();
 
     const sourceData = model.sourceData as MmcifFormat;
-    const rowCount = sourceData.data.frame.categories.partial_atomic_charges_meta.rowCount;
-    const typeIds = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('id');
-    const methods = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('method');
+    const rowCount = sourceData.data.frame.categories.sb_ncbr_partial_atomic_charges_meta.rowCount;
+    const typeIds = sourceData.data.frame.categories.sb_ncbr_partial_atomic_charges_meta.getField('id');
+    const methods = sourceData.data.frame.categories.sb_ncbr_partial_atomic_charges_meta.getField('method');
 
     if (!typeIds || !methods) {
         return typeIdToMethod;
@@ -88,10 +88,10 @@ function getTypeIdToAtomIdToCharge(model: Model): ChargesData['typeIdToAtomIdToC
     const atomIdToCharge: ChargesData['typeIdToAtomIdToCharge'] = new Map();
 
     const sourceData = model.sourceData as MmcifFormat;
-    const rowCount = sourceData.data.frame.categories.partial_atomic_charges.rowCount;
-    const typeIds = sourceData.data.frame.categories.partial_atomic_charges.getField('type_id');
-    const atomIds = sourceData.data.frame.categories.partial_atomic_charges.getField('atom_id');
-    const charges = sourceData.data.frame.categories.partial_atomic_charges.getField('charge');
+    const rowCount = sourceData.data.frame.categories.sb_ncbr_partial_atomic_charges.rowCount;
+    const typeIds = sourceData.data.frame.categories.sb_ncbr_partial_atomic_charges.getField('type_id');
+    const atomIds = sourceData.data.frame.categories.sb_ncbr_partial_atomic_charges.getField('atom_id');
+    const charges = sourceData.data.frame.categories.sb_ncbr_partial_atomic_charges.getField('charge');
 
     if (!typeIds || !atomIds || !charges) return atomIdToCharge;
 
@@ -175,8 +175,8 @@ export function hasPartialChargesCategories(model: Model): boolean {
     const names = model.sourceData.data.frame.categoryNames;
     return (
         names.includes('atom_site') &&
-        names.includes('partial_atomic_charges') &&
-        names.includes('partial_atomic_charges_meta')
+        names.includes('sb_ncbr_partial_atomic_charges') &&
+        names.includes('sb_ncbr_partial_atomic_charges_meta')
     );
 }
 
