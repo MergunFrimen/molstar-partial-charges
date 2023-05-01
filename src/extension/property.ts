@@ -120,7 +120,6 @@ function getTypeIdToResidueIdToCharge(model: Model, typeIdToAtomIdToCharge: Char
             let charge = 0;
             for (let aI = offsets[rI], _aI = offsets[rI + 1]; aI < _aI; aI++) {
                 const atom_id = atomIds.value(aI);
-                if (atom_id !== aI + 1) console.log(aI, atom_id);
                 charge += atomIdToCharge.get(atom_id) || 0;
             }
             for (let aI = offsets[rI], _aI = offsets[rI + 1]; aI < _aI; aI++) {
