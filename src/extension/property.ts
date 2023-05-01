@@ -46,7 +46,7 @@ async function getData(model: Model): Promise<CustomProperty.Data<PartialCharges
     const typeIdToResidueToCharge = getTypeIdToResidueIdToCharge(model, typeIdToAtomIdToCharge);
     const maxAbsoluteAtomCharges = getMaxAbsoluteCharges(typeIdToAtomIdToCharge);
     const maxAbsoluteResidueCharges = getMaxAbsoluteCharges(typeIdToResidueToCharge);
-    const maxAbsoluteAtomChargeAll = getMaxAbsoluteAtomChargeAll(maxAbsoluteAtomCharges);
+    const maxAbsoluteAtomChargeAll = getMaxAbsoluteAtomChargeAll(maxAbsoluteAtomCharges, maxAbsoluteResidueCharges);
 
     return {
         value: {
@@ -152,11 +152,18 @@ function getMaxAbsoluteCharges(
     return maxAbsoluteCharges;
 }
 
-function getMaxAbsoluteAtomChargeAll(maxAbsoluteAtomCharges: ChargesData['maxAbsoluteAtomCharges']): number {
+function getMaxAbsoluteAtomChargeAll(
+    maxAbsoluteAtomCharges: ChargesData['maxAbsoluteAtomCharges'],
+    maxAbsoluteResidueCharges: ChargesData['maxAbsoluteResidueCharges']
+): number {
     let maxAbsoluteCharge = 0;
 
     maxAbsoluteAtomCharges.forEach((_, typeId) => {
         const maxCharge = maxAbsoluteAtomCharges.get(typeId) || 0;
+        if (maxCharge > maxAbsoluteCharge) maxAbsoluteCharge = maxCharge;
+    });
+    maxAbsoluteResidueCharges.forEach((_, typeId) => {
+        const maxCharge = maxAbsoluteResidueCharges.get(typeId) || 0;
         if (maxCharge > maxAbsoluteCharge) maxAbsoluteCharge = maxCharge;
     });
 
