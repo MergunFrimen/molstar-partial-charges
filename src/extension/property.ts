@@ -5,48 +5,41 @@ import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
 import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
 import { CustomPropertyDescriptor } from 'molstar/lib/mol-model/custom-property';
 import { CustomModelProperty } from 'molstar/lib/mol-model-props/common/custom-model-property';
+import { arrayMinMax } from 'molstar/lib/mol-util/array';
 
 type TypeId = number;
 type IdToCharge = Map<number, number>;
-type ChargesData = {
+interface ChargesData {
     typeIdToMethod: Map<TypeId, string>;
     typeIdToAtomIdToCharge: Map<TypeId, IdToCharge>;
     typeIdToResidueToCharge: Map<TypeId, IdToCharge>;
     maxAbsoluteAtomCharges: IdToCharge;
     maxAbsoluteResidueCharges: IdToCharge;
     maxAbsoluteAtomChargeAll: number;
-};
+}
 type PartialCharges = PropertyWrapper<ChargesData | undefined>;
 
-let updatedParams = false;
-let PartialChargesPropertyParams = {
+const PartialChargesPropertyParams = {
     typeId: PD.Select<number>(0, [[0, '0']]),
 };
 type PartialChargesPropertyParams = typeof PartialChargesPropertyParams;
-let defaultPartialChargesPropertyParams = PD.clone(PartialChargesPropertyParams);
+const defaultPartialChargesPropertyParams = PD.clone(PartialChargesPropertyParams);
 
 function getParams(model: Model) {
-    // This is a hack for setting the option values for the dropdown menu
-    if (!updatedParams) {
-        const typeIdToMethod = getTypeIdToMethod(model);
-        const options = Array.from(typeIdToMethod.entries()).map(
-            ([typeId, method]) => [typeId, method] as [number, string]
-        );
-        PartialChargesPropertyParams = {
-            typeId: PD.Select<number>(1, options),
-        };
-        defaultPartialChargesPropertyParams = PD.clone(PartialChargesPropertyParams);
-        updatedParams = true;
-    }
-
-    return PartialChargesPropertyParams;
+    const typeIdToMethod = getTypeIdToMethod(model);
+    const options = Array.from(typeIdToMethod.entries()).map(
+        ([typeId, method]) => [typeId, method] as [number, string]
+    );
+    return {
+        typeId: PD.Select<number>(1, options),
+    };
 }
 
+// eslint-disable-next-line @typescript-eslint/require-await
 async function getData(model: Model): Promise<CustomProperty.Data<PartialCharges>> {
-    await Promise.resolve();
     const info = PropertyWrapper.createInfo();
 
-    if (!isApplicable(model)) return { value: { info, data: undefined } };
+    if (!SbNcbrPartialChargesPropertyProvider.isApplicable(model)) return { value: { info, data: undefined } };
 
     const typeIdToMethod = getTypeIdToMethod(model);
     const typeIdToAtomIdToCharge = getTypeIdToAtomIdToCharge(model);
@@ -75,16 +68,16 @@ function getTypeIdToMethod(model: Model) {
 
     const sourceData = model.sourceData as MmcifFormat;
     const rowCount = sourceData.data.frame.categories.partial_atomic_charges_meta.rowCount;
-    const typeIds = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('id')?.toIntArray();
-    const methods = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('method')?.toStringArray();
+    const typeIds = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('id');
+    const methods = sourceData.data.frame.categories.partial_atomic_charges_meta.getField('method');
 
     if (!typeIds || !methods) {
         return typeIdToMethod;
     }
 
     for (let i = 0; i < rowCount; ++i) {
-        const typeId = typeIds[i];
-        const method = methods[i];
+        const typeId = typeIds.int(i);
+        const method = methods.str(i);
         typeIdToMethod.set(typeId, method);
     }
 
@@ -96,16 +89,16 @@ function getTypeIdToAtomIdToCharge(model: Model): ChargesData['typeIdToAtomIdToC
 
     const sourceData = model.sourceData as MmcifFormat;
     const rowCount = sourceData.data.frame.categories.partial_atomic_charges.rowCount;
-    const typeIds = sourceData.data.frame.categories.partial_atomic_charges.getField('type_id')?.toIntArray();
-    const atomIds = sourceData.data.frame.categories.partial_atomic_charges.getField('atom_id')?.toIntArray();
-    const charges = sourceData.data.frame.categories.partial_atomic_charges.getField('charge')?.toFloatArray();
+    const typeIds = sourceData.data.frame.categories.partial_atomic_charges.getField('type_id');
+    const atomIds = sourceData.data.frame.categories.partial_atomic_charges.getField('atom_id');
+    const charges = sourceData.data.frame.categories.partial_atomic_charges.getField('charge');
 
     if (!typeIds || !atomIds || !charges) return atomIdToCharge;
 
     for (let i = 0; i < rowCount; ++i) {
-        const typeId = typeIds[i];
-        const atomId = atomIds[i];
-        const charge = charges[i];
+        const typeId = typeIds.int(i);
+        const atomId = atomIds.int(i);
+        const charge = charges.float(i);
         if (!atomIdToCharge.has(typeId)) atomIdToCharge.set(typeId, new Map());
         atomIdToCharge.get(typeId)?.set(atomId, charge);
     }
@@ -114,18 +107,26 @@ function getTypeIdToAtomIdToCharge(model: Model): ChargesData['typeIdToAtomIdToC
 }
 
 function getTypeIdToResidueIdToCharge(model: Model, typeIdToAtomIdToCharge: ChargesData['typeIdToAtomIdToCharge']) {
-    const { offsets } = model.atomicHierarchy.residueAtomSegments;
+    const { offsets, count } = model.atomicHierarchy.residueAtomSegments;
+    const { atomSourceIndex } = model.atomicHierarchy;
+    const sourceData = model.sourceData as MmcifFormat;
+    const atomIds = sourceData.data.frame.categories.atom_site.getField('id');
+
     const residueToCharge: ChargesData['typeIdToResidueToCharge'] = new Map();
 
+    if (!atomIds) return residueToCharge;
+
     typeIdToAtomIdToCharge.forEach((atomIdToCharge, typeId: number) => {
-        for (let residueId = 1; residueId < offsets.length; ++residueId) {
+        if (!residueToCharge.has(typeId)) residueToCharge.set(typeId, new Map());
+        for (let rI = 0; rI < count; rI++) {
             let charge = 0;
-            for (let atomId = offsets[residueId - 1] + 1; atomId <= offsets[residueId]; ++atomId) {
-                charge += atomIdToCharge?.get(atomId) || 0;
+            for (let aI = offsets[rI], _aI = offsets[rI + 1]; aI < _aI; aI++) {
+                const atom_id = atomIds.int(atomSourceIndex.value(aI));
+                charge += atomIdToCharge.get(atom_id) || 0;
             }
-            for (let atomId = offsets[residueId - 1] + 1; atomId <= offsets[residueId]; ++atomId) {
-                if (!residueToCharge.has(typeId)) residueToCharge.set(typeId, new Map());
-                residueToCharge.get(typeId)?.set(atomId, Number(charge.toFixed(4)));
+            for (let aI = offsets[rI], _aI = offsets[rI + 1]; aI < _aI; aI++) {
+                const atom_id = atomIds.int(atomSourceIndex.value(aI));
+                residueToCharge.get(typeId)?.set(atom_id, Number(charge.toFixed(4)));
             }
         }
     });
@@ -143,8 +144,7 @@ function getMaxAbsoluteCharges(
 
     typeIdToCharge.forEach((idToCharge, typeId) => {
         const charges = Array.from(idToCharge.values());
-        const min = Math.min(...charges);
-        const max = Math.max(...charges);
+        const [min, max] = arrayMinMax(charges);
         const bound = Math.max(Math.abs(min), max);
         maxAbsoluteCharges.set(typeId, bound);
     });
@@ -163,18 +163,14 @@ function getMaxAbsoluteAtomChargeAll(maxAbsoluteAtomCharges: ChargesData['maxAbs
     return maxAbsoluteCharge;
 }
 
-function hasPartialChargesCategories(model: Model): boolean {
-    if (!MmcifFormat.is(model.sourceData)) return false;
+export function hasPartialChargesCategories(model: Model): boolean {
+    if (!model || !MmcifFormat.is(model.sourceData)) return false;
     const names = model.sourceData.data.frame.categoryNames;
     return (
         names.includes('atom_site') &&
         names.includes('partial_atomic_charges') &&
         names.includes('partial_atomic_charges_meta')
     );
-}
-
-export function isApplicable(model?: Model): boolean {
-    return !!model && model.sourceData.kind === 'mmCIF' && hasPartialChargesCategories(model);
 }
 
 export const SbNcbrPartialChargesPropertyProvider: CustomModelProperty.Provider<
@@ -188,6 +184,6 @@ export const SbNcbrPartialChargesPropertyProvider: CustomModelProperty.Provider<
     type: 'static',
     defaultParams: defaultPartialChargesPropertyParams,
     getParams: (data: Model) => getParams(data),
-    isApplicable: (model: Model) => isApplicable(model),
+    isApplicable: (model: Model) => hasPartialChargesCategories(model),
     obtain: (_ctx: CustomProperty.Context, model: Model) => getData(model),
 });

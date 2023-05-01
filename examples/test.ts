@@ -14,9 +14,9 @@ let charge = 0;
 
 const url_prefix = 'http://127.0.0.1:5501/examples/test/';
 const examples = [
+    '1a9l.fw2.cif',
     'Q9C6B8_added_H.cif',
     '148l.fw2.cif',
-    '1a9l.fw2.cif',
     '1f16.fw2.cif',
     '100d.fw2.cif',
     '10gs.fw2.cif',
@@ -336,7 +336,7 @@ async function testLociLabels() {
         const label_atom_id = sourceData.data.db.atom_site.label_atom_id.value(last_index); // atom
         const label_alt_id = sourceData.data.db.atom_site.label_alt_id.value(last_index); // altloc
         const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
-        const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model).typeId.defaultValue;
+        const typeId = SbNcbrPartialChargesPropertyProvider.props(model).typeId;
 
         if (!data) {
             console.error('No data');

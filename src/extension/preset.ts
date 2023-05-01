@@ -23,11 +23,11 @@ export const SbNcbrPartialChargesPreset = StructureRepresentationPresetProvider(
         if (!structureCell || !structure) return {};
 
         const colorTheme = SbNcbrPartialChargesColorThemeProvider.name;
-        return await PresetStructureRepresentations.auto.apply(
+        return PresetStructureRepresentations.auto.apply(
             ref,
             {
                 ...params,
-                theme: { globalName: colorTheme, focus: { name: colorTheme, params: { showResidueCharge: false } } },
+                theme: { globalName: colorTheme, focus: { name: colorTheme, params: { chargeType: 'atom' } } },
             },
             plugin
         );

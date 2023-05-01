@@ -96,7 +96,7 @@ export default class MolstarPartialCharges {
         getTypeId: () => {
             const model = this.getModel();
             if (!model) throw new Error('No model loaded.');
-            const typeId = SbNcbrPartialChargesPropertyProvider.getParams(model)?.typeId.defaultValue;
+            const typeId = SbNcbrPartialChargesPropertyProvider.props(model).typeId;
             if (!typeId) throw new Error('No type id found.');
             return typeId;
         },
@@ -293,7 +293,9 @@ export default class MolstarPartialCharges {
                         const typeName = type?.name;
                         const showResidueCharge = typeName && showResidueChargeFor.includes(typeName);
                         let colorTheme = oldProps?.colorTheme;
-                        colorTheme = merge({}, colorTheme, { params: { showResidueCharge } });
+                        colorTheme = merge({}, colorTheme, {
+                            params: { chargeType: showResidueCharge ? 'residue' : 'atom' },
+                        });
 
                         const mergedProps = merge({}, oldProps, {
                             type,
@@ -333,7 +335,7 @@ export default class MolstarPartialCharges {
                         const showResidueChargeFor = ['cartoon', 'carbohydrate'];
                         const typeName = representation.cell.transform.params?.type?.name;
                         const showResidueCharge = typeName && showResidueChargeFor.includes(typeName);
-                        params = merge({}, params, { showResidueCharge });
+                        params = merge({}, params, { chargeType: showResidueCharge ? 'residue' : 'atom' });
 
                         const oldProps = representation.cell.transform.params;
                         const mergedProps = merge({}, oldProps, { colorTheme }, { colorTheme: { params } });
@@ -370,7 +372,7 @@ export default class MolstarPartialCharges {
             color === SbNcbrPartialChargesColorThemeProvider.name
                 ? this.partialChargesColorProps
                 : this.elementSymbolColorProps;
-        props = merge({}, props, { params: { ...params, showResidueCharge: false } });
+        props = merge({}, props, { params: { ...params, chargeType: 'atom' } });
         await this.plugin.state.updateBehavior(StructureFocusRepresentation, (p) => {
             p.targetParams.colorTheme = props;
             p.surroundingsParams.colorTheme = props;
