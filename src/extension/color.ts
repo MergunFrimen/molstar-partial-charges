@@ -38,7 +38,7 @@ export const PartialChargesThemeParams = {
     ),
     absolute: PD.Boolean(false, { isHidden: false, label: 'Use Range' }),
     chargeType: PD.Select(
-        'atom',
+        'residue',
         [
             ['atom', 'Atom charges'],
             ['residue', 'Residue charges'],
