@@ -84,7 +84,7 @@ export default class MolstarPartialCharges {
         getMethodNames: () => {
             const model = this.getModel();
             if (!model) throw new Error('No model found');
-            const data = SbNcbrPartialChargesPropertyProvider.get(model).value?.data;
+            const data = SbNcbrPartialChargesPropertyProvider.get(model).value;
             if (!data) throw new Error('No data found');
             const methodNames = [];
             for (let typeId = 1; typeId < data.typeIdToMethod.size + 1; ++typeId) {
@@ -109,7 +109,7 @@ export default class MolstarPartialCharges {
         getMaxCharge: () => {
             const model = this.getModel();
             if (!model) throw new Error('No model loaded.');
-            const maxCharge = SbNcbrPartialChargesPropertyProvider.get(model).value?.data?.maxAbsoluteAtomChargeAll;
+            const maxCharge = SbNcbrPartialChargesPropertyProvider.get(model).value?.maxAbsoluteAtomChargeAll;
             if (maxCharge === undefined) throw new Error('No max charge found for all charge sets.');
             return maxCharge;
         },
