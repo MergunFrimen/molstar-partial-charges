@@ -157,7 +157,7 @@ export default class MolstarPartialCharges {
 
             const { labelCompId, labelSeqId, labelAtomId } = key;
 
-            const sel = Script.getStructureSelection(
+            const selection = Script.getStructureSelection(
                 (Q) =>
                     Q.struct.generator.atomGroups({
                         'atom-test': Q.core.logic.and([
@@ -169,7 +169,7 @@ export default class MolstarPartialCharges {
                 data
             );
 
-            const loci = StructureSelection.toLociWithSourceUnits(sel);
+            const loci = StructureSelection.toLociWithSourceUnits(selection);
             this.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci });
             this.plugin.managers.interactivity.lociSelects.selectOnly({ loci });
             this.plugin.managers.camera.focusLoci(loci);
