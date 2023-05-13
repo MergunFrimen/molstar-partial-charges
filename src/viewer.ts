@@ -150,7 +150,7 @@ export default class MolstarPartialCharges {
             await this.updateType(this.surfaceTypeProps.type.name);
         },
     };
-    visual = {
+    behavior = {
         focus: (key: AtomKey) => {
             const data = this.plugin.managers.structure.hierarchy.current.structures[0].components[0].cell.obj?.data;
             if (!data) return;

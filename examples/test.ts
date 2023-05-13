@@ -198,7 +198,7 @@ async function loadWrongStructure() {
     await molstar.load(url_prefix + 'Q55GB6_added_H.pdb', 'pdb', 'AlphaCharges');
     await molstar.color.default();
     await molstar.type.ballAndStick();
-    await molstar.visual.focus({ labelCompId: 'GLN', labelAtomId: 'CD', labelSeqId: 33 });
+    await molstar.behavior.focus({ labelCompId: 'GLN', labelAtomId: 'CD', labelSeqId: 33 });
 }
 
 async function load(url: string, format: BuiltInTrajectoryFormat = 'mmcif', target: TargetWebApp = 'ACC2') {
@@ -362,7 +362,7 @@ async function testLociLabels() {
         // input mmCIF file should not have altlocs
         console.assert(label_alt_id === 'A' || label_alt_id === '');
 
-        molstar.visual.focus({ labelAtomId: label_atom_id, labelSeqId: label_seq_id, labelCompId: label_comp_id });
+        molstar.behavior.focus({ labelAtomId: label_atom_id, labelSeqId: label_seq_id, labelCompId: label_comp_id });
         await delay(1000);
     }
 }
