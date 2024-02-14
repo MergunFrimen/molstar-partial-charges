@@ -175,6 +175,30 @@ export default class MolstarPartialCharges {
             this.plugin.managers.camera.focusLoci(loci);
             this.plugin.managers.structure.focus.setFromLoci(loci);
         },
+        focusRange: (range: { residueStart: number; residueEnd: number }) => {
+            const data = this.plugin.managers.structure.hierarchy.current.structures[0].components[0].cell.obj?.data;
+            if (!data) return;
+
+            const { residueStart, residueEnd } = range;
+
+            const selection = Script.getStructureSelection(
+                (Q) =>
+                    Q.struct.generator.atomGroups({
+                        'residue-test': Q.core.rel.inRange([
+                            Q.struct.atomProperty.macromolecular.label_seq_id(),
+                            residueStart,
+                            residueEnd,
+                        ]),
+                    }),
+                data
+            );
+
+            const loci = StructureSelection.toLociWithSourceUnits(selection);
+            this.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci });
+            this.plugin.managers.interactivity.lociSelects.selectOnly({ loci });
+            this.plugin.managers.camera.focusLoci(loci);
+            this.plugin.managers.structure.focus.setFromLoci(loci);
+        },
     };
 
     private readonly defaultProps: Map<string, Representation3D> = new Map();
