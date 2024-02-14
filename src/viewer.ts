@@ -194,10 +194,10 @@ export default class MolstarPartialCharges {
             );
 
             const loci = StructureSelection.toLociWithSourceUnits(selection);
-            this.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci });
+            // this.plugin.managers.interactivity.lociHighlights.highlightOnly({ loci });
             this.plugin.managers.interactivity.lociSelects.selectOnly({ loci });
             this.plugin.managers.camera.focusLoci(loci);
-            this.plugin.managers.structure.focus.setFromLoci(loci);
+            // this.plugin.managers.structure.focus.setFromLoci(loci);
         },
     };
 
