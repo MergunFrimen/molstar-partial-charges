@@ -204,6 +204,7 @@ export default class MolstarPartialCharges {
             name: GaussianSurfaceRepresentationProvider.name,
             params: {
                 ...GaussianSurfaceRepresentationProvider.defaultValues,
+                quality: 'high'
             },
         },
         sizeTheme: {
