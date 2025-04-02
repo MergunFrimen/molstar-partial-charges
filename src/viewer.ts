@@ -1,4 +1,5 @@
-import { createPluginUI } from 'molstar/lib/mol-plugin-ui/react18';
+import { createPluginUI } from 'molstar/lib/mol-plugin-ui';
+import { renderReact18 } from 'molstar/lib/mol-plugin-ui/react18';
 import { PluginUIContext } from 'molstar/lib/mol-plugin-ui/context';
 import { DefaultPluginUISpec, PluginUISpec } from 'molstar/lib/mol-plugin-ui/spec';
 import { StructureFocusRepresentation } from 'molstar/lib/mol-plugin/behavior/dynamic/selection/structure-focus-representation';
@@ -58,7 +59,11 @@ export default class MolstarPartialCharges {
 
         const root = document.getElementById(target);
         if (!root) throw new Error(`Element with ID '${target}' not found.`);
-        const plugin = await createPluginUI(root, specs);
+        const plugin = await createPluginUI({
+            target: root,
+            render: renderReact18,
+            spec: specs
+        });
 
         return new MolstarPartialCharges(plugin);
     }
