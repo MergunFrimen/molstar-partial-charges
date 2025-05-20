@@ -62,7 +62,7 @@ export default class MolstarPartialCharges {
         const plugin = await createPluginUI({
             target: root,
             render: renderReact18,
-            spec: specs
+            spec: specs,
         });
 
         return new MolstarPartialCharges(plugin);
@@ -233,6 +233,7 @@ export default class MolstarPartialCharges {
             name: GaussianSurfaceRepresentationProvider.name,
             params: {
                 ...GaussianSurfaceRepresentationProvider.defaultValues,
+                quality: 'high',
             },
         },
         sizeTheme: {
