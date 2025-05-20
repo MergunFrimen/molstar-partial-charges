@@ -1,8 +1,8 @@
 import {
     PresetStructureRepresentations,
     StructureRepresentationPresetProvider,
-} from 'molstar/lib/mol-plugin-state/builder/structure/representation-preset';
-import { StateObjectRef } from 'molstar/lib/mol-state';
+} from 'molstar/lib/commonjs/mol-plugin-state/builder/structure/representation-preset';
+import { StateObjectRef } from 'molstar/lib/commonjs/mol-state';
 import { SbNcbrPartialChargesPropertyProvider } from './property';
 import { SbNcbrPartialChargesColorThemeProvider } from './color';
 

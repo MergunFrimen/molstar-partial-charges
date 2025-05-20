@@ -1,10 +1,10 @@
-import { Model } from 'molstar/lib/mol-model/structure';
-import { CustomProperty } from 'molstar/lib/mol-model-props/common/custom-property';
-import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
-import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
-import { CustomPropertyDescriptor } from 'molstar/lib/mol-model/custom-property';
-import { CustomModelProperty } from 'molstar/lib/mol-model-props/common/custom-model-property';
-import { arrayMinMax } from 'molstar/lib/mol-util/array';
+import { Model } from 'molstar/lib/commonjs/mol-model/structure';
+import { CustomProperty } from 'molstar/lib/commonjs/mol-model-props/common/custom-property';
+import { ParamDefinition as PD } from 'molstar/lib/commonjs/mol-util/param-definition';
+import { MmcifFormat } from 'molstar/lib/commonjs/mol-model-formats/structure/mmcif';
+import { CustomPropertyDescriptor } from 'molstar/lib/commonjs/mol-model/custom-property';
+import { CustomModelProperty } from 'molstar/lib/commonjs/mol-model-props/common/custom-model-property';
+import { arrayMinMax } from 'molstar/lib/commonjs/mol-util/array';
 
 type TypeId = number;
 type IdToCharge = Map<number, number>;

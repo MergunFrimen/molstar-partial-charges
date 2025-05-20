@@ -1,9 +1,9 @@
-import { StructureElement, StructureProperties } from 'molstar/lib/mol-model/structure';
-import { LociLabel } from 'molstar/lib/mol-plugin-state/manager/loci-label';
+import { StructureElement, StructureProperties } from 'molstar/lib/commonjs/mol-model/structure';
+import { LociLabel } from 'molstar/lib/commonjs/mol-plugin-state/manager/loci-label';
 import { SbNcbrPartialChargesPropertyProvider } from './property';
-import { Loci } from 'molstar/lib/mol-model/loci';
-import { PluginContext } from 'molstar/lib/mol-plugin/context';
-import { LociLabelProvider } from 'molstar/lib/mol-plugin-state/manager/loci-label';
+import { Loci } from 'molstar/lib/commonjs/mol-model/loci';
+import { PluginContext } from 'molstar/lib/commonjs/mol-plugin/context';
+import { LociLabelProvider } from 'molstar/lib/commonjs/mol-plugin-state/manager/loci-label';
 
 export function SbNcbrPartialChargesLociLabelProvider(ctx: PluginContext): LociLabelProvider {
     return {

@@ -1,6 +1,6 @@
-import { LociLabelProvider } from 'molstar/lib/mol-plugin-state/manager/loci-label';
-import { PluginBehavior } from 'molstar/lib/mol-plugin/behavior';
-import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
+import { LociLabelProvider } from 'molstar/lib/commonjs/mol-plugin-state/manager/loci-label';
+import { PluginBehavior } from 'molstar/lib/commonjs/mol-plugin/behavior';
+import { ParamDefinition as PD } from 'molstar/lib/commonjs/mol-util/param-definition';
 import { SbNcbrPartialChargesColorThemeProvider } from './color';
 import { SbNcbrPartialChargesPropertyProvider } from './property';
 import { SbNcbrPartialChargesLociLabelProvider } from './labels';

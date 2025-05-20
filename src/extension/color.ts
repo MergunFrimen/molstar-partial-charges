@@ -1,11 +1,11 @@
-import { Bond, StructureElement, StructureProperties, Unit } from 'molstar/lib/mol-model/structure';
-import { ColorTheme, LocationColor } from 'molstar/lib/mol-theme/color';
-import { ThemeDataContext } from 'molstar/lib/mol-theme/theme';
-import { Color } from 'molstar/lib/mol-util/color';
-import { ParamDefinition as PD } from 'molstar/lib/mol-util/param-definition';
-import { Location } from 'molstar/lib/mol-model/location';
+import { Bond, StructureElement, StructureProperties, Unit } from 'molstar/lib/commonjs/mol-model/structure';
+import { ColorTheme, LocationColor } from 'molstar/lib/commonjs/mol-theme/color';
+import { ThemeDataContext } from 'molstar/lib/commonjs/mol-theme/theme';
+import { Color } from 'molstar/lib/commonjs/mol-util/color';
+import { ParamDefinition as PD } from 'molstar/lib/commonjs/mol-util/param-definition';
+import { Location } from 'molstar/lib/commonjs/mol-model/location';
 import { SbNcbrPartialChargesPropertyProvider } from './property';
-import { CustomProperty } from 'molstar/lib/mol-model-props/common/custom-property';
+import { CustomProperty } from 'molstar/lib/commonjs/mol-model-props/common/custom-property';
 
 const Colors = {
     Bond: Color(0xffffff),

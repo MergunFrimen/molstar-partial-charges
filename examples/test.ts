@@ -1,7 +1,7 @@
 import './style.css';
 import MolstarPartialCharges from '../src/viewer';
-import { BuiltInTrajectoryFormat } from 'molstar/lib/mol-plugin-state/formats/trajectory';
-import { MmcifFormat } from 'molstar/lib/mol-model-formats/structure/mmcif';
+import { BuiltInTrajectoryFormat } from 'molstar/lib/commonjs/mol-plugin-state/formats/trajectory';
+import { MmcifFormat } from 'molstar/lib/commonjs/mol-model-formats/structure/mmcif';
 import { SbNcbrPartialChargesPropertyProvider } from '../src/extension/property';
 import { TargetWebApp } from '../src/types';
 

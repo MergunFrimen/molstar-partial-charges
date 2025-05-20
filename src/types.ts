@@ -1,6 +1,6 @@
-import { StructureRepresentationRegistry } from 'molstar/lib/mol-repr/structure/registry';
-import { ColorTheme } from 'molstar/lib/mol-theme/color';
-import { SizeTheme } from 'molstar/lib/mol-theme/size';
+import { StructureRepresentationRegistry } from 'molstar/lib/commonjs/mol-repr/structure/registry';
+import { ColorTheme } from 'molstar/lib/commonjs/mol-theme/color';
+import { SizeTheme } from 'molstar/lib/commonjs/mol-theme/size';
 
 export type Representation3D = {
     colorTheme: Color;
