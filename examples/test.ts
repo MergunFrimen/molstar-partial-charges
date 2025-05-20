@@ -13,7 +13,7 @@ let current_example = 0;
 let charge = 0;
 
 const url_prefix = 'http://127.0.0.1:5500/examples/';
-const examples = ['P00791_added_H.cif', '1c0q.cif.charges.cif', '1tqn.cif'];
+const examples = ['2bg9.fw2.cif', 'P00791_added_H.cif', '1c0q.cif.charges.cif', '1tqn.cif'];
 const default_structure_url = url_prefix + examples[current_example];
 
 const molstar = await MolstarPartialCharges.create('app', { MAQualityAssessment: true, SbNcbrPartialCharges: true });
