@@ -37,7 +37,7 @@
     },
     "dependencies": {
         "lodash.merge": "^4.6.2",
-        "molstar": "^4.12.1"
+        "molstar": "^4.15.0"
     },
     "devDependencies": {
         "@commitlint/cli": "^17.4.2",
