@@ -11,6 +11,7 @@
 
 ## Development
 
+    npx http-server --cors
     npm i
     npm run dev
 
